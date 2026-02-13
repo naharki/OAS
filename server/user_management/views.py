@@ -1,20 +1,19 @@
 from urllib import request
 from django.shortcuts import render
-
-# Create your views here.
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from .models import User
 from .models import App
 from .serializers import (
     UserSerializer,
     AdminCreateSerializer,
     UserCreateSerializer,
-    AppSerializer
+    AppSerializer,
+    AdminUpdateSerializer
 )
 from .permissions import IsSuperAdmin, IsAdmin
 
@@ -95,7 +94,16 @@ class CreateAppView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response({'message': 'App created successfully'}, status=status.HTTP_201_CREATED)
-        
+
+# list all the app : 
+class AppListView(APIView):
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
+
+    def get(self, request):
+        apps = App.objects.all()
+        serializer = AppSerializer(apps, many=True)
+        return Response(serializer.data)
+          
         
 class CreateAdminView(APIView):
    permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -105,7 +113,55 @@ class CreateAdminView(APIView):
          if serializer.is_valid(raise_exception=True):
               serializer.save()
               return Response({'message': 'Admin created successfully'}, status=status.HTTP_201_CREATED)
-        
+# list admin view 
+
+class AdminListView(APIView):
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
+
+    def get(self, request):
+        # admins_ids = request.user.assigned_apps.values_list('admins', flat=True).distinct()
+        admins = User.objects.filter(role='admin').distinct()
+        serializer = UserSerializer(admins, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class AdminDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
+
+    def put(self, request,pk):
+        try:
+            admin = User.objects.get(pk=pk, role='admin')    
+        except User.DoesNotExist:
+            return Response({'error': 'Admin not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = AdminUpdateSerializer(admin, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Admin updated successfully'}, status=status.HTTP_200_OK)
+    
+class AdminDeleteView(APIView):
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
+
+    def delete(self, request, pk):
+        try:
+            admin = User.objects.get(pk=pk, role='admin')
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Admin not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if admin == request.user:
+            return Response(
+                {"error": "You cannot delete yourself"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        admin.delete()
+
+        return Response(
+            {'message': 'Admin deleted successfully'},
+            status=status.HTTP_200_OK
+        )
+
 # admin
 class CreateUserView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
@@ -126,3 +182,4 @@ class MeView(APIView):
 
     def get(self, request):
        return Response(UserSerializer(request.user).data) 
+    

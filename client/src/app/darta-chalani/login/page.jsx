@@ -34,7 +34,7 @@ export default function LoginPage() {
     //     return;
     //   }
 
-      const hasApp = user.assigned_apps.some((a) => a.name === "darta-chalani");
+      const hasApp = user.accessible_apps.some((a) => a.name === "darta-chalani");
       if (!hasApp) {
         alert("You do not have access to this app");
         return;

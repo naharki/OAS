@@ -34,13 +34,13 @@ export default function LoginPage() {
     //     return;
     //   }
 
-      const hasApp = user.assigned_apps.some((a) => a.name === "user-management");
+      const hasApp = user.accessible_apps.some((a) => a.name === "user-management");
       if (!hasApp) {
         alert("You do not have access to this app");
         return;
       }
 
-      router.push(`/`);
+      router.push(`/user-management/dashboard`);
     } catch (err) {
       // Handle backend errors
       if (err.response) {

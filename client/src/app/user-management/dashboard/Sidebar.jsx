@@ -20,15 +20,6 @@ export default function Sidebar({ collapsed = false }) {
       ],
     },
     {
-      id: 'dartaChalani',
-      label: 'दर्ता/चलानी',
-      icon: FileText,
-      subItems: [
-        { id: 'darta', label: 'दर्ता', href: '/darta-chalani/dashboard/darta' },
-        { id: 'chalani', label: 'चलानी', href: '/darta-chalani/dashboard/chalani' },
-      ],
-    },
-    {
       id: 'designation',
       label: 'पद',
       icon: FileText,
@@ -56,70 +47,13 @@ export default function Sidebar({ collapsed = false }) {
         { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
       ],
     },
-    {
-      id: 'administrati',
-      label: 'Audit Logs',
+        {
+      id: 'admin',
+      label: 'Admin',
       icon: Settings,
       subItems: [
-               { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
-      ],
-    },
-    {
-      id: 'administrat',
-      label: 'टिप्पणी/आदेश',
-      icon: Settings,
-      subItems: [
-        { id: 'users', label: 'Users', href: '/dashboard/admin/users' },
-        { id: 'roles', label: 'Roles & Permissions', href: '/dashboard/admin/roles' },
-        { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
-      ],
-    },{
-      id: 'administra',
-      label: 'व्यक्ति वा कार्यालयको विवरण',
-      icon: Settings,
-      subItems: [
-        { id: 'users', label: 'Users', href: '/dashboard/admin/users' },
-        { id: 'roles', label: 'Roles & Permissions', href: '/dashboard/admin/roles' },
-        { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
-      ],
-    },
-    {
-      id: 'administr',
-      label: 'सुची दर्ता',
-      icon: Settings,
-      subItems: [
-        { id: 'users', label: 'Users', href: '/dashboard/admin/users' },
-        { id: 'roles', label: 'Roles & Permissions', href: '/dashboard/admin/roles' },
-        { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
-      ],
-    },
-    {
-      id: 'administ',
-      label: 'प्रयोगकर्ता ब्यबस्थापन',
-      icon: Settings,
-      subItems: [
-        { id: 'users', label: 'Users', href: '/dashboard/admin/users' },
-        { id: 'roles', label: 'Roles & Permissions', href: '/dashboard/admin/roles' },
-        { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
-      ],
-    },
-    {
-      id: 'adminis',
-      label: 'ईन्धन विवरण',
-      icon: Settings,
-      subItems: [
-        { id: 'users', label: 'Users', href: '/dashboard/admin/users' },
-        { id: 'roles', label: 'Roles & Permissions', href: '/dashboard/admin/roles' },
-        { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
-      ],
-    },
-    {
-      id: 'admini',
-      label: 'ईन्धन माग',
-      icon: Settings,
-      subItems: [
-        { id: 'users', label: 'Users', href: '/dashboard/admin/users' },
-        { id: 'roles', label: 'Roles & Permissions', href: '/dashboard/admin/roles' },
+        { id: 'admin', label: 'Create Admin', href: '/user-management/dashboard/admin/' },
+        { id: 'adminlist', label: 'Admin List', href: '/user-management/dashboard/admin/' },
         { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
       ],
     },
@@ -142,8 +76,8 @@ export default function Sidebar({ collapsed = false }) {
           <div style={{ width:40, height:40, borderRadius:8, background: 'linear-gradient(135deg,#6f8cff,#3aa0ff)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>YJ</div>
         ) : (
           <div>
-            <h1 className="h5 fw-bold text-primary mb-0">📋 दर्ता/चलानी</h1>
-            <small className="text-secondary">Reg/Ref Management</small>
+            <h1 className="h5 fw-bold text-primary mb-0">📋 प्रयोगकर्ता ब्यबस्थापन</h1>
+            <small className="text-secondary">User Management</small>
           </div>
         )}
       </div>
@@ -223,7 +157,7 @@ export default function Sidebar({ collapsed = false }) {
         ) : (
           <>
             <small className="text-secondary d-block">Version 1.0</small>
-            <small className="text-muted">© 2025 Yojana</small>
+            <small className="text-muted">© 2025 UC</small>
           </>
         )}
       </div>

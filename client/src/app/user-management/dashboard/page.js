@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 export default function DashboardPage() {
   const router = useRouter();
   useEffect(() => {
-    router.push('/user-management/');
+    router.push('/user-management/dashboard');
   }, [router]);
 
   return (

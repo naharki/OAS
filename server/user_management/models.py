@@ -19,6 +19,12 @@ class User (AbstractUser):
     assigned_apps = models.ManyToManyField(App, blank=True, related_name='users')
     objects = UserManager()
 
+    @property
+    def accessible_apps(self):
+        if self.role == 'superadmin':
+            return App.objects.all()
+        return self.assigned_apps.all()
+    
     def __str__(self):
         return f"{self.username} - {self.role}"
     
