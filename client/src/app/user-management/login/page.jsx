@@ -55,6 +55,9 @@ export default function LoginPage() {
       }
     }
   };
+  const handleCancel = () => {
+    router.push("/");
+  };
 
   return (
   <div
@@ -136,6 +139,20 @@ export default function LoginPage() {
              onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
            >
              Login
+           </button>
+           <button
+             type="button"
+             className="btn btn-danger w-100 mt-2 fw-bold"
+              style={{  
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.transform = "scale(1.05)")
+              }
+              onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+              onClick={handleCancel}
+           >
+             Cancel
            </button>
          </form>
 
