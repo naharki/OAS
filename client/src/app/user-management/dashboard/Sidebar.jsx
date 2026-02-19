@@ -52,10 +52,8 @@ export default function Sidebar({ collapsed = false }) {
       label: 'Admin',
       icon: Settings,
       subItems: [
-        { id: 'admin', label: 'Create Admin', href: '/user-management/dashboard/admin/' },
-        { id: 'adminlist', label: 'Admin List', href: '/user-management/dashboard/admin/' },
-        { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
-      ],
+        { id: 'admin', label: '+ Admin & List', href: '/user-management/dashboard/admin/' },
+             ],
     },
   ];
 

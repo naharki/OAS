@@ -58,14 +58,6 @@ export default function Sidebar({ collapsed = false }) {
       ],
     },
     {
-      id: 'administrati',
-      label: 'Audit Logs',
-      icon: Settings,
-      subItems: [
-               { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
-      ],
-    },
-    {
       id: 'administrat',
       label: 'टिप्पणी/आदेश',
       icon: Settings,
@@ -89,9 +81,8 @@ export default function Sidebar({ collapsed = false }) {
       label: 'सुची दर्ता',
       icon: Settings,
       subItems: [
-        { id: 'users', label: 'Users', href: '/dashboard/admin/users' },
-        { id: 'roles', label: 'Roles & Permissions', href: '/dashboard/admin/roles' },
-        { id: 'audit', label: 'Audit Logs', href: '/dashboard/admin/audit' },
+        { id: 'suchi-darta', label: 'Suchi Darta', href: '/darta-chalani/dashboard/suchi-darta' },
+        
       ],
     },
     {

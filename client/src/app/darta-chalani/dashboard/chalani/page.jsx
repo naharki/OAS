@@ -1,10 +1,11 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusCircle } from 'lucide-react';
 import { ChalaniService } from '@/services/darta-chalani/dartaChalaniServices';
-import ChalaniList from '../../components/Chalani/chalaniList';
-import ChalaniForm from '../../components/Chalani/chalaniForm';
+import ChalaniList from '../../components/chalani/chalaniList';
+import ChalaniForm from '../../components/chalani/chalaniForm';
 
 const Chalani = () => {
   const [items, setItems] = useState([]);

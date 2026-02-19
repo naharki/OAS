@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from  user_management.models import User
 from .model.officemodel import Office_model as Office
 from .model.fiscalyear import FiscalYear
 from .model.ward import Ward
@@ -54,3 +56,10 @@ class PlannigAdmin(admin.ModelAdmin):
     search_fields = ('registration_number', 'plan_name', 'ward_number','location','allocated_budget','implementation_level','implementation_status')
     list_filter = ('registration_number', 'plan_name', 'ward_number','location','allocated_budget','implementation_level','implementation_status')
     ordering = ('-registration_number',)
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'role', 'is_active', 'date_joined')
+    search_fields = ('username', 'email', 'role')
+    list_filter = ('role', 'is_active', 'date_joined')
+    ordering = ('-date_joined',)
