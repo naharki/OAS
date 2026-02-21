@@ -25,12 +25,11 @@ const AdminPage = () => {
     try {
       setLoading(true);
       const response = await AdminService.list();
-      console.log(response.data);
       setItems(response.data);
       
     } catch (err) {
       console.error(err);
-      setError('Failed to load Darta');
+      setError('Failed to load Admin');
     } finally { setLoading(false); }
   };
   
@@ -38,12 +37,11 @@ const AdminPage = () => {
     try {
       setLoading(true);
       const response = await AppsService.list();
-      console.log(response.data);
       setAppsList(response.data);
       
     } catch (err) {
       console.error(err);
-      setError('Failed to load Darta');
+      setError('Failed to load Apps');
     } finally { setLoading(false); }
   };
 

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from  user_management.models import User
+from  user_management.models import App, User
 from .model.officemodel import Office_model as Office
 from .model.fiscalyear import FiscalYear
 from .model.ward import Ward
@@ -9,6 +9,9 @@ from .model.committee import Committee
 from .model.committee import Member
 from .model.plan import Plan
 
+admin.site.site_header = "Yojana Admin Dashboard"
+admin.site.site_title = "Yojana Admin"
+admin.site.index_title = "Welcome to Yojana Admin Dashboard"
 
 @admin.register(Office)
 class OfficeAdmin(admin.ModelAdmin):
@@ -63,3 +66,9 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('username', 'email', 'role')
     list_filter = ('role', 'is_active', 'date_joined')
     ordering = ('-date_joined',)
+
+@admin.register(App)
+class AppAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    ordering = ('name',)

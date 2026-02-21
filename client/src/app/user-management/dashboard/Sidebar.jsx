@@ -55,6 +55,14 @@ export default function Sidebar({ collapsed = false }) {
         { id: 'admin', label: '+ Admin & List', href: '/user-management/dashboard/admin/' },
              ],
     },
+    {
+      id: 'apps',
+      label: 'Apps',
+      icon: Settings,
+      subItems: [
+        { id: 'apps', label: '+ Apps & List', href: '/user-management/dashboard/apps/' },
+             ],
+    },
   ];
 
   const toggleMenu = (menuId) => {

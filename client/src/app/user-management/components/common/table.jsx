@@ -1,5 +1,4 @@
 "use client";
-
 import { Edit2, Trash2 } from "lucide-react";
 
 export default function ListDataTableCommon({
@@ -11,7 +10,6 @@ export default function ListDataTableCommon({
   emptyTitle = "No Data Found",
   emptyMessage = "Please add data to get started.",
 }) {
-  console.log(data)
   // 🔄 Loading state
   if (loading) {
     return (

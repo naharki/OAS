@@ -2,7 +2,7 @@ from django.db import models
 
 class SuchiDarta(models.Model):
     darta_number = models.PositiveIntegerField(unique=True, editable=False)
-    pan_Vat_number = models.PositiveIntegerField(max_length=100, unique=True)
+    pan_Vat_number = models.PositiveIntegerField(unique=True)
     darta_date = models.CharField(max_length=20)  # Store Nepali date as string (YYYY-MM-DD format)
     firm_name = models.CharField(max_length=200)
     tax_clearance_FY = models.CharField(max_length=20)

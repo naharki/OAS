@@ -3,8 +3,8 @@ import api from "@/lib/api";
 export const AppsService = {
   list: () => api.get("/users/apps/"),
 //   get: (id) => api.get(`/users/apps/${id}/`),
-  create: (data) => api.post("/users/apps/", data),
-//   update: (id, data) => api.put(`/users/apps/${id}/`, data),
+  create: (data) => api.post("/users/create-app/", data),
+  // update: (id, data) => api.put(`/users/apps/${id}/`, data),
 //   remove: (id) => api.delete(`/users/apps/${id}/`),
 };
 
