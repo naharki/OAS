@@ -7,5 +7,5 @@ drf-nested-routers
 pandas
 Pillow
 openpyxl
-
+djangorestframework-simplejwt
 

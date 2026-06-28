@@ -3,19 +3,18 @@ from django.db import models
 from .userManager import UserManager
 
 class App(models.Model):
-    # Custom user model can be extended here
     name = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return self.name
 
-class User (AbstractUser):
+class User(AbstractUser):
     Role_Choices = (
         ('superadmin', 'Super Admin'),
         ('admin', 'Admin'), 
-        ('user', 'User'),
+        ('data_entry', 'Data Entry'),
     )
-    role = models.CharField(max_length=20, choices=Role_Choices)
+    role = models.CharField(max_length=20, choices=Role_Choices, default='data_entry')
     assigned_apps = models.ManyToManyField(App, blank=True, related_name='users')
     objects = UserManager()
 
@@ -27,5 +26,3 @@ class User (AbstractUser):
     
     def __str__(self):
         return f"{self.username} - {self.role}"
-    
-   

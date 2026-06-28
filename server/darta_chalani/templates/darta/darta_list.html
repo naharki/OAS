@@ -1,0 +1,242 @@
+{% extends "dashboard.html" %} {% block title %}Darta Document Records
+Register{% endblock %} {% block content %}
+<style>
+  .table-responsive {
+    overflow: visible !important;
+  }
+  .hover-scale:hover {
+    transform: scale(1.1);
+  }
+  .transition-all {
+    transition: all 0.2s ease-in-out;
+  }
+</style>
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div>
+    <h5 class="fw-bold text-dark m-0">दर्ता अभिलेख सूची</h5>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-2">
+  <div class="card-body bg-white rounded">
+    <div class="row g-3 align-items-center justify-content-between">
+      <div class="col-md-3">
+        <form
+          method="get"
+          id="perPageForm"
+          class="d-flex align-items-center gap-2"
+        >
+          <label class="small text-muted text-nowrap">Show entries:</label>
+          <select
+            name="per_page"
+            class="form-select form-select-sm"
+            onchange="document.getElementById('perPageForm').submit()"
+          >
+              <option value="10" {% if per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
+              <option value="25" {% if per_page|stringformat:"s" == "25" %}selected{% endif %}>25</option>
+              <option value="50" {% if per_page|stringformat:"s" == "50" %}selected{% endif %}>50</option>
+              <option value="all" {% if per_page|stringformat:"s" == "all" %}selected{% endif %}>All Items</option>
+          </select>
+        </form>
+      </div>
+
+      <div class="col-md-4 text-md-end">
+        <div
+          class="d-inline-flex align-items-center justify-content-md-end flex-wrap gap-2"
+        >
+          <a
+            href="{% url 'add_darta' %}"
+            class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 shadow-sm fw-semibold px-3 py-1.5"
+          >
+            <i data-lucide="plus-circle" class="size-3"></i>
+            <span></span>
+          </a>
+
+          <a
+            href="{% url 'export_darta_excel' %}"
+            class="btn btn-outline-success btn-sm d-inline-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5"
+          >
+            <i data-lucide="sheet" class="size-4"></i>
+            <span></span>
+          </a>
+
+          <a
+            href="{% url 'export_darta_pdf' %}"
+            target="_blank"
+            class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5"
+          >
+            <i data-lucide="file-text" class="size-4"></i>
+            <span></span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 text-secondary">
+        <thead class="table-light text-dark fw-semibold small">
+          <tr>
+            <th class="ps-4">दर्ता नं.</th>
+            <th>दर्ता मिति (Date)</th>
+            <th>पठाउने कार्यालय/व्यक्ति</th>
+            <th>पत्र संख्या/विषय</th>
+            <th>प्राप्त गर्ने शाखा</th>
+            <th class="text-center pe-4">कार्य</th>
+          </tr>
+        </thead>
+        <tbody class="small">
+          {% for item in page_obj %}
+          <tr>
+            <td class="ps-4 fw-bold text-dark">{{ item.darta_number }}</td>
+            <td>
+              <span class="badge bg-light text-secondary border"
+                >{{ item.darta_date }}</span
+              >
+            </td>
+            <td>
+              <div class=" text-dark" >{{ item.letter_sender }}</div>
+            </td>
+            <td>
+              <span class="badge bg-primary-subtle text-primary mb-1"
+                >{{ item.ref_number }}</span
+              >
+              <div class="text-dark fw-medium">{{ item.subject }}</div>
+            </td>
+            <td>
+              <span class="text-info fw-semibold text-uppercase"
+                >{{ item.receiver_section }}</span
+              >
+            </td>
+            <td class="text-center pe-4 position-relative">
+              <div class="dropdown position-static">
+                <button
+                  class="btn btn-light btn-sm rounded-circle border shadow-sm p-2 hover-scale transition-all"
+                  type="button"
+                  id="dropdownAction{{ item.id }}"
+                  data-bs-toggle="dropdown"
+                  data-bs-boundary="viewport"
+                  aria-expanded="false"
+                >
+                  <i
+                    data-lucide="more-horizontal"
+                    class="size-4 text-secondary"
+                  ></i>
+                </button>
+                <ul
+                  class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 mt-1 rounded-3 bg-white"
+                  style="min-width: 160px; z-index: 1060"
+                  aria-labelledby="dropdownAction{{ item.id }}"
+                >
+                  <li>
+                    <h6
+                      class="dropdown-header text-uppercase tracking-wider text-muted font-monospace mb-1"
+                      style="font-size: 0.7rem"
+                    >
+                      Actions
+                    </h6>
+                  </li>
+                  <li>
+                    <a
+                      href="{% url 'darta_detail' item.id %}"
+                      class="dropdown-item d-flex align-items-center gap-2 small text-dark py-2 rounded-2 hover-bg-light"
+                    >
+                      <i data-lucide="eye" class="size-4 text-muted"></i>
+                      <span>Details</span>
+                    </a>
+                  </li>
+
+                  {% if user.is_superuser %}
+                  <li><hr class="dropdown-divider my-1 opacity-25" /></li>
+                  <li>
+                    <a
+                      href="{% url 'edit_darta' item.id %}"
+                      class="dropdown-item d-flex align-items-center gap-2 small text-primary py-2 rounded-2 fw-semibold hover-bg-primary-subtle"
+                    >
+                      <i data-lucide="edit-2" class="size-4 text-primary"></i>
+                      <span>Edit</span>
+                    </a>
+                  </li>
+
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              ⚠️ No document records available at this station framework.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# Industry Standard Elided Pagination Implementation #}
+  {% if page_obj.has_other_pages and per_page != 'all' %}
+  <div class="card-footer bg-white border-top py-2 d-flex align-items-center justify-content-between">
+    <span class="small text-muted">
+      Showing Page <strong>{{ page_obj.number }}</strong> of {{ page_obj.paginator.num_pages }}
+    </span>
+    <nav aria-label="Registry table navigation">
+      <ul class="pagination pagination-sm mb-0 gap-1">
+        
+        {# Previous Button (<) #}
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link rounded px-2.5 py-1.5 d-flex align-items-center" 
+             href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}" 
+             aria-label="Previous">
+            <span aria-hidden="true">&lsaquo;</span>
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link rounded px-2.5 py-1.5 d-flex align-items-center">&lsaquo;</span>
+        </li>
+        {% endif %}
+
+        {# Main Elided Sequence Loop #}
+        {% for num in custom_page_range %}
+          {% if num == page_obj.paginator.ELLIPSIS %}
+            <li class="page-item disabled">
+              <span class="page-link border-0 bg-transparent text-muted px-2">...</span>
+            </li>
+          {% elif num == page_obj.number %}
+            <li class="page-item active" aria-current="page">
+              <span class="page-link rounded fw-bold px-3">{{ num }}</span>
+            </li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link rounded px-3" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {# Next Button (>) #}
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link rounded px-2.5 py-1.5 d-flex align-items-center" 
+             href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}" 
+             aria-label="Next">
+            <span aria-hidden="true">&rsaquo;</span>
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link rounded px-2.5 py-1.5 d-flex align-items-center">&rsaquo;</span>
+        </li>
+        {% endif %}
+
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

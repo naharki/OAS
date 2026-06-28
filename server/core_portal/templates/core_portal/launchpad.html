@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>डिजिटल कार्यालय प्रवेश पोर्टल | Launchpad</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+    }
+    
+    body {
+      background: var(--bg-gradient);
+      font-family: 'Outfit', sans-serif;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .glass-header {
+      background: rgba(15, 23, 42, 0.3);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .launchpad-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .launchpad-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .launchpad-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--card-hover-border);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .launchpad-card:hover::before {
+      opacity: 1;
+    }
+
+    .app-icon-container {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      color: #818cf8;
+      font-size: 1.75rem;
+      transition: all 0.3s ease;
+    }
+
+    .launchpad-card:hover .app-icon-container {
+      background: #818cf8;
+      color: #ffffff;
+      transform: scale(1.05) rotate(5deg);
+    }
+
+    .btn-launch {
+      border-radius: 10px;
+      font-weight: 600;
+      padding: 0.6rem 1.25rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-portal-login {
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+      border: none;
+      color: white;
+      font-weight: 500;
+      padding: 0.6rem 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-portal-login:hover {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+    }
+
+    .portal-title {
+      font-size: 2.25rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .badge-guest {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .badge-auth {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .size-6 { width: 24px; height: 24px; }
+    .size-8 { width: 32px; height: 32px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <header class="glass-header py-3 px-4 sticky-top">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <div class="p-2 bg-indigo-600 rounded text-white bg-opacity-10 d-flex align-items-center justify-content-center">
+          <i data-lucide="layers" class="text-indigo-400 size-6"></i>
+        </div>
+        <span class="fs-5 fw-bold tracking-tight text-white">डिजिटल प्रणाली प्रवेशद्वार</span>
+      </div>
+      <div>
+        {% if is_guest %}
+          <span class="badge-guest me-3">Public Portal Mode</span>
+          <a href="{% url 'login' %}" class="btn btn-portal-login">Sign In</a>
+        {% else %}
+          <span class="badge-auth me-3">Authenticated Session</span>
+          <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm border-opacity-20 px-3 py-2" style="border-radius:10px;">Sign Out</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <!-- Middle cards list -->
+  <main class="container py-5 my-auto">
+    <div class="row justify-content-center text-center mb-5">
+      <div class="col-lg-8">
+        <h1 class="portal-title mb-3">एकीकृत डिजिटल प्रणाली (OAS)</h1>
+        <p class="text-muted fs-5">Select an application from the launchpad to access the workspace dashboards. Access permissions are regulated by user role mappings.</p>
+      </div>
+    </div>
+
+    <div class="row justify-content-center g-4">
+      {% for app in apps %}
+      <div class="col-md-6 col-lg-4">
+        <div class="launchpad-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div class="app-icon-container">
+                <i data-lucide="{{ app.icon }}"></i>
+              </div>
+              <span class="badge bg-white bg-opacity-5 text-indigo-300 border border-secondary border-opacity-10 small py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">MODULE</span>
+            </div>
+            <h4 class="fw-bold mb-2 text-white">{{ app.name }}</h4>
+            <p class="text-muted small mb-4" style="line-height: 1.5;">{{ app.description }}</p>
+          </div>
+          <div class="pt-2 border-top border-secondary border-opacity-10">
+            <a href="{{ app.url }}" class="btn btn-outline-primary text-white w-100 btn-launch border-opacity-10 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.02);">
+              Launch Workspace
+              <i data-lucide="arrow-up-right" class="size-4"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-md-6 text-center py-5">
+        <div class="p-4 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-4">
+          <i data-lucide="shield-x" class="text-danger size-8 mb-3"></i>
+          <h5 class="fw-bold text-white">No Assigned Applications</h5>
+          <p class="text-muted small">Your user profile currently does not have any applications mapped. Please contact the Super Administrator to provision access for your account.</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-4 mt-5 text-center text-secondary border-top border-white border-opacity-5" style="background: rgba(0,0,0,0.15);">
+    <div class="container">
+      <small>© 2026 Aanbukhaireni RM Government Platform. All rights reserved. Decoupled Lifecycle Architecture.</small>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

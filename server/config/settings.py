@@ -19,9 +19,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'api',
+    'planning',
     'darta_chalani',
     'user_management',
+    'core_portal',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +64,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core_portal.context_processors.base_template',
             ],
         },
     },
@@ -126,3 +128,6 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+LOGIN_URL = '/login/'  # Tells Django where to send users when they aren't logged in
+LOGIN_REDIRECT_URL = '/darta-chalani/' # Where to send them after a successful login
+LOGOUT_REDIRECT_URL = '/login/'

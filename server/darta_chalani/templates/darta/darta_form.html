@@ -1,0 +1,211 @@
+{% extends "dashboard.html" %}
+
+{% block title %}
+Darta Form
+{% endblock %}
+
+{% block content %}
+
+<style>
+  .form-card {
+    border: 1px solid #eef0f2;
+    border-radius: 12px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #6c757d;
+  }
+
+  .form-control {
+    border-radius: 8px;
+  }
+
+  .form-control:focus {
+    box-shadow: none;
+    border-color: #4f46e5;
+  }
+
+  .sticky-header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+</style>
+
+<!-- HEADER -->
+<div class="sticky-header mb-3">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h4 class="fw-bold mb-0">
+        {% if is_detail_mode %}
+          दर्ता विवरण
+        {% elif is_edit_mode %}
+          दर्ता सम्पादन
+        {% else %}
+          नयाँ दर्ता प्रविष्टि
+        {% endif %}
+      </h4>
+      <small class="text-muted">Municipality Darta Management System</small>
+    </div>
+
+    <a href="{% url 'darta_list' %}" class="btn btn-light border btn-sm">
+      ← Back
+    </a>
+  </div>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="row g-3">
+
+    <!-- LEFT -->
+    <div class="col-lg-6">
+
+      <div class="card form-card shadow-sm mb-3">
+        <div class="card-body">
+
+          <div class="section-title mb-3">Darta Information</div>
+
+          <div class="mb-3">
+            <label class="form-label">दर्ता नं. *</label>
+            <input type="text" name="darta_number" class="form-control"
+              value="{{ instance.darta_number }}"
+              {% if is_detail_mode %}disabled{% endif %} required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">दर्ता समूह *</label>
+            <input type="text" name="darta_samuha" class="form-control"
+              value="{{ instance.darta_samuha }}"
+              {% if is_detail_mode %}disabled{% endif %} required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">दर्ता मिति *</label>
+            <input type="date" name="darta_date" class="form-control"
+              value="{{ instance.darta_date }}"
+              {% if is_detail_mode %}disabled{% endif %} required>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col-lg-6">
+
+      <div class="card form-card shadow-sm mb-3">
+        <div class="card-body">
+
+          <div class="section-title mb-3">Sender Information</div>
+
+          <div class="mb-3">
+            <label class="form-label">पत्र पठाउने संस्था *</label>
+            <input type="text" name="letter_sender" class="form-control"
+              value="{{ instance.letter_sender }}"
+              {% if is_detail_mode %}disabled{% endif %} required>
+          </div>
+
+          <!-- OPTIONAL EMAIL -->
+          <div class="mb-3">
+            <label class="form-label">इमेल (Optional)</label>
+            <input type="email" name="sender_email" class="form-control"
+              value="{{ instance.sender_email|default:'' }}"
+              {% if is_detail_mode %}disabled{% endif %}
+              placeholder="example@email.com">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">ठेगाना *</label>
+            <input type="text" name="sender_address" class="form-control"
+              value="{{ instance.sender_address }}"
+              {% if is_detail_mode %}disabled{% endif %} required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">पत्र मिति *</label>
+            <input type="date" name="letter_date" class="form-control"
+              value="{{ instance.letter_date }}"
+              {% if is_detail_mode %}disabled{% endif %} required>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FULL WIDTH -->
+    <div class="col-12">
+
+      <div class="card form-card shadow-sm">
+        <div class="card-body">
+
+          <div class="section-title mb-3">Document Details</div>
+
+          <div class="row g-3">
+
+            <!-- OPTIONAL REF NUMBER -->
+            <div class="col-md-4">
+              <label class="form-label">रेफरन्स नं. (Optional)</label>
+              <input type="text" name="ref_number" class="form-control"
+                value="{{ instance.ref_number|default:'' }}"
+                {% if is_detail_mode %}disabled{% endif %}
+                placeholder="Ref no. if available">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">शाखा *</label>
+              <input type="text" name="receiver_section" class="form-control"
+                value="{{ instance.receiver_section }}"
+                {% if is_detail_mode %}disabled{% endif %} required>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">विषय *</label>
+              <input type="text" name="subject" class="form-control"
+                value="{{ instance.subject }}"
+                {% if is_detail_mode %}disabled{% endif %} required>
+            </div>
+
+            <!-- OPTIONAL REMARKS -->
+            <div class="col-12">
+              <label class="form-label">कैफियत (Optional)</label>
+              <textarea name="remarks" class="form-control" rows="3"
+                {% if is_detail_mode %}disabled{% endif %}
+                placeholder="Additional notes...">{{ instance.remarks|default:'' }}</textarea>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <a href="{% url 'darta_list' %}" class="btn btn-light border">
+      Close
+    </a>
+
+    {% if not is_detail_mode %}
+    <button type="submit" class="btn btn-primary px-4">
+      {% if is_edit_mode %}Update{% else %}Save Record{% endif %}
+    </button>
+    {% endif %}
+
+  </div>
+
+</form>
+
+{% endblock %}

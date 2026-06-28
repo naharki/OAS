@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management Panel | Super Admin</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8fafc;
+      font-family: 'Outfit', sans-serif;
+      color: #334155;
+    }
+    
+    .panel-header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: white;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+    }
+
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.01);
+      background-color: white;
+    }
+
+    .table {
+      vertical-align: middle;
+    }
+
+    .table th {
+      font-weight: 600;
+      color: #475569;
+      background-color: #f1f5f9;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .badge-superadmin {
+      background-color: #ffe4e6;
+      color: #e11d48;
+      border: 1px solid #fda4af;
+    }
+
+    .badge-admin {
+      background-color: #dbeafe;
+      color: #2563eb;
+      border: 1px solid #93c5fd;
+    }
+
+    .badge-dataentry {
+      background-color: #d1fae5;
+      color: #059669;
+      border: 1px solid #6ee7b7;
+    }
+
+    .badge-app {
+      background-color: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      font-size: 0.75rem;
+    }
+
+    .form-control, .form-select {
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      padding: 0.6rem 0.9rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .btn {
+      border-radius: 10px;
+      font-weight: 500;
+      padding: 0.6rem 1.25rem;
+    }
+
+    .size-5 { width: 20px; height: 20px; }
+    .size-4 { width: 16px; height: 16px; }
+  </style>
+</head>
+<body>
+
+  <div class="container py-5">
+    
+    <!-- Top banner -->
+    <div class="panel-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="fw-bold m-0 d-flex align-items-center gap-2">
+          <i data-lucide="shield-check" class="text-rose-400"></i>
+          User Management Panel
+        </h2>
+        <p class="m-0 text-muted mt-1" style="font-size: 0.95rem; color: #94a3b8 !important;">Provision Admin/Data Entry accounts and map application access permissions.</p>
+      </div>
+      <div>
+        <a href="{% url 'launchpad' %}" class="btn btn-outline-light d-flex align-items-center gap-2">
+          <i data-lucide="arrow-left" class="size-4"></i>
+          Back to Launchpad
+        </a>
+      </div>
+    </div>
+
+    <!-- Alert systems -->
+    {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+      <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px;">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="toast" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+      <!-- Users list -->
+      <div class="col-lg-8">
+        <div class="card p-4">
+          <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+            <i data-lucide="users" class="text-indigo-500"></i>
+            User Account Directory
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Assigned Apps</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for u in users %}
+                <tr>
+                  <td>
+                    <span class="fw-semibold text-dark">{{ u.username }}</span>
+                    {% if u == user %}
+                      <span class="badge bg-secondary ms-1">You</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted small">{{ u.email|default:"—" }}</td>
+                  <td>
+                    {% if u.role == 'superadmin' %}
+                      <span class="badge badge-superadmin">Super Admin</span>
+                    {% elif u.role == 'admin' %}
+                      <span class="badge badge-admin">Admin</span>
+                    {% else %}
+                      <span class="badge badge-dataentry">Data Entry</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if u.role == 'superadmin' %}
+                      <span class="badge bg-dark text-white font-monospace" style="font-size:0.7rem;">GLOBAL ROOT ACCESS</span>
+                    {% else %}
+                      {% for app in u.assigned_apps.all %}
+                        <span class="badge badge-app">{{ app.name }}</span>
+                      {% empty %}
+                        <span class="text-muted small italic">None (No Access)</span>
+                      {% endfor %}
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="d-flex justify-content-end gap-2">
+                      <button class="btn btn-outline-primary btn-sm px-2.5 py-1.5" onclick="populateEditForm('{{ u.id }}', '{{ u.username }}', '{{ u.email }}', '{{ u.role }}', [{% for app in u.assigned_apps.all %}'{{ app.id }}',{% endfor %}])" title="Edit Permissions">
+                        <i data-lucide="edit-3" class="size-4"></i>
+                      </button>
+                      {% if u != user %}
+                      <a href="{% url 'delete_user' u.id %}" class="btn btn-outline-danger btn-sm px-2.5 py-1.5" onclick="return confirm('Are you sure you want to delete user {{ u.username }}? This action is permanent.');" title="Delete User">
+                        <i data-lucide="trash-2" class="size-4"></i>
+                      </a>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Creation/Edit Panel -->
+      <div class="col-lg-4">
+        <!-- Create User Card -->
+        <div class="card p-4 mb-4" id="createUserCard">
+          <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+            <i data-lucide="user-plus" class="text-emerald-500"></i>
+            Provision New Account
+          </h5>
+          <form method="post" action="{% url 'user_management' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Username</label>
+              <input type="text" class="form-control" name="username" placeholder="e.g. data_entry_1" required autocomplete="username">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Email Address</label>
+              <input type="email" class="form-control" name="email" placeholder="e.g. user@domain.com" autocomplete="email">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Password</label>
+              <input type="password" class="form-control" name="password" placeholder="Enter secure password" required autocomplete="new-password">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Security Role Tier</label>
+              <select class="form-select" name="role" id="roleSelect" onchange="toggleAppsVisibility('roleSelect', 'appsCheckboxGroup')">
+                <option value="data_entry" selected>Data Entry (Read & Create Only)</option>
+                <option value="admin">Admin (Full CRUD & Reporting)</option>
+                <option value="superadmin">Super Admin (Global Root Platform)</option>
+              </select>
+            </div>
+
+            <div class="mb-4" id="appsCheckboxGroup">
+              <label class="form-label small fw-semibold d-block mb-2">Map Application Permissions</label>
+              {% for app in apps %}
+              <div class="form-check mb-1">
+                <input class="form-check-input" type="checkbox" name="apps" value="{{ app.id }}" id="app_create_{{ app.id }}">
+                <label class="form-check-label small" for="app_create_{{ app.id }}">
+                  {{ app.name }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2">
+              <i data-lucide="plus" class="size-4"></i>
+              Create Account
+            </button>
+          </form>
+        </div>
+
+        <!-- Edit User Card (Hidden by default) -->
+        <div class="card p-4 d-none" id="editUserCard">
+          <h5 class="fw-bold mb-4 d-flex align-items-center gap-2 text-indigo-600">
+            <i data-lucide="edit-2" class="size-5"></i>
+            Modify Account Permissions
+          </h5>
+          <form method="post" action="{% url 'user_management' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="user_id" id="editUserId">
+            
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Username</label>
+              <input type="text" class="form-control bg-light" id="editUsername" disabled>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Email Address</label>
+              <input type="email" class="form-control" name="email" id="editEmail" placeholder="user@domain.com">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Password <small class="text-muted">(Leave blank to keep current)</small></label>
+              <input type="password" class="form-control" name="password" placeholder="Enter new password" autocomplete="new-password">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Security Role Tier</label>
+              <select class="form-select" name="role" id="editRoleSelect" onchange="toggleAppsVisibility('editRoleSelect', 'editAppsCheckboxGroup')">
+                <option value="data_entry">Data Entry (Read & Create Only)</option>
+                <option value="admin">Admin (Full CRUD & Reporting)</option>
+                <option value="superadmin">Super Admin (Global Root Platform)</option>
+              </select>
+            </div>
+
+            <div class="mb-4" id="editAppsCheckboxGroup">
+              <label class="form-label small fw-semibold d-block mb-2">Map Application Permissions</label>
+              {% for app in apps %}
+              <div class="form-check mb-1">
+                <input class="form-check-input edit-app-checkbox" type="checkbox" name="apps" value="{{ app.id }}" id="app_edit_{{ app.id }}">
+                <label class="form-check-label small" for="app_edit_{{ app.id }}">
+                  {{ app.name }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-secondary w-50" onclick="cancelEdit()">Cancel</button>
+              <button type="submit" class="btn btn-success w-50">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    function toggleAppsVisibility(selectId, groupId) {
+        const selectEl = document.getElementById(selectId);
+        const groupEl = document.getElementById(groupId);
+        if (selectEl.value === 'superadmin') {
+            groupEl.style.display = 'none';
+        } else {
+            groupEl.style.display = 'block';
+        }
+    }
+
+    function populateEditForm(userId, username, email, role, assignedAppIds) {
+        // Hide Create Card, Show Edit Card
+        document.getElementById("createUserCard").classList.add("d-none");
+        const editCard = document.getElementById("editUserCard");
+        editCard.classList.remove("d-none");
+        
+        // Populate inputs
+        document.getElementById("editUserId").value = userId;
+        document.getElementById("editUsername").value = username;
+        document.getElementById("editEmail").value = email;
+        document.getElementById("editRoleSelect").value = role;
+
+        // Reset checkboxes
+        const checkboxes = document.querySelectorAll(".edit-app-checkbox");
+        checkboxes.forEach(cb => {
+            cb.checked = assignedAppIds.includes(cb.value);
+        });
+
+        toggleAppsVisibility('editRoleSelect', 'editAppsCheckboxGroup');
+        
+        // Scroll to edit card
+        editCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+        document.getElementById("editUserCard").classList.add("d-none");
+        document.getElementById("createUserCard").classList.remove("d-none");
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}डिजिटल कार्यालय | Platform{% endblock %}</title>
+  
+  <!-- Premium Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  
+  <style>
+    :root {
+      --primary-color: #3b82f6;
+      --primary-dark: #1d4ed8;
+      --bg-dark: #0f172a;
+      --bg-sidebar: #1e293b;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --content-bg: #f8fafc;
+    }
+    
+    body {
+      background-color: var(--content-bg);
+      font-family: 'Outfit', sans-serif;
+      color: #334155;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      min-height: 100vh;
+      background: linear-gradient(180deg, var(--bg-sidebar) 0%, #0f172a 100%);
+      color: #f8fafc;
+      width: 280px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 24px rgba(15, 23, 42, 0.15);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .sidebar.collapsed {
+      width: 80px;
+    }
+
+    .sidebar .brand-area {
+      padding: 1.5rem 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .sidebar .nav-link {
+      color: #94a3b8;
+      border-radius: 0.5rem;
+      margin: 0.25rem 0.75rem;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    
+    .sidebar .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+    }
+    
+    .sidebar .nav-link.active {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Top Navbar */
+    .main-navbar {
+      background-color: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 99;
+    }
+    
+    .avatar-wrapper {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #ffffff;
+      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+    }
+
+    .card {
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
+      border-radius: 12px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      border: none;
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      box-shadow: 0 6px 14px rgba(59, 130, 246, 0.35);
+    }
+
+    .size-4 { width: 16px; height: 16px; }
+    .size-5 { width: 20px; height: 20px; }
+    .size-6 { width: 24px; height: 24px; }
+  </style>
+</head>
+<body class="bg-light">
+
+  <!-- Toast Notification System -->
+  {% if messages %}
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+    {% for message in messages %}
+    <div class="toast show align-items-center text-white {% if message.tags == 'success' %}bg-success{% elif message.tags == 'error' %}bg-danger{% else %}bg-warning{% endif %} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">{{ message }}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="d-flex min-vh-100">
+    <!-- Collapsible Sidebar -->
+    <aside class="sidebar flex-shrink-0 d-none d-md-block position-sticky top-0 h-100" id="appSidebar">
+      <div class="brand-area d-flex align-items-center gap-3">
+        <div class="p-2 bg-primary rounded text-white d-flex align-items-center justify-content-center">
+          <i data-lucide="layout-dashboard" class="size-6"></i>
+        </div>
+        <div class="sidebar-text">
+          <h6 class="fw-bold m-0 text-white">डिजिटल प्रणाली</h6>
+          <small class="text-muted" style="font-size: 0.75rem;">Government Portal</small>
+        </div>
+      </div>
+      
+      <div class="py-3">
+        <small class="text-uppercase text-muted fw-bold px-4 mb-2 d-block tracking-wider sidebar-text" style="font-size: 0.7rem;">Applications & Tools</small>
+        <nav class="nav flex-column">
+          <!-- Launchpad Redirect Link -->
+          <a class="nav-link" href="{% url 'launchpad' %}">
+            <i data-lucide="grid" class="size-5"></i>
+            <span class="sidebar-text">Launchpad Dashboard</span>
+          </a>
+          
+          <hr class="border-secondary opacity-25 mx-3 my-2 sidebar-text">
+
+          <!-- Conditional App Modules -->
+          <div class="sidebar-text px-4 py-1 text-uppercase text-muted fw-bold" style="font-size: 0.65rem;">Darta Chalani</div>
+          
+          <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_index' %}active{% endif %}" 
+             hx-get="/darta-chalani/" hx-target="#content-canvas" hx-push-url="true" href="/darta-chalani/">
+            <i data-lucide="activity" class="size-5"></i>
+            <span class="sidebar-text">DC Dashboard</span>
+          </a>
+          
+          <a class="nav-link {% if 'office' in request.path %}active{% endif %}" 
+             hx-get="/darta-chalani/office/" hx-target="#content-canvas" hx-push-url="true" href="/darta-chalani/office/">
+            <i data-lucide="building" class="size-5"></i>
+            <span class="sidebar-text">Office Setup</span>
+          </a>
+          
+          <a class="nav-link {% if 'darta/' in request.path %}active{% endif %}" 
+             hx-get="/darta-chalani/darta/" hx-target="#content-canvas" hx-push-url="true" href="/darta-chalani/darta/">
+            <i data-lucide="file-input" class="size-5"></i>
+            <span class="sidebar-text">Darta Registry</span>
+          </a>
+          
+          <a class="nav-link {% if 'chalani/' in request.path %}active{% endif %}" 
+             hx-get="/darta-chalani/chalani/" hx-target="#content-canvas" hx-push-url="true" href="/darta-chalani/chalani/">
+            <i data-lucide="file-output" class="size-5"></i>
+            <span class="sidebar-text">Chalani Registry</span>
+          </a>
+
+          <!-- Planning Module -->
+          <hr class="border-secondary opacity-25 mx-3 my-2 sidebar-text">
+          <div class="sidebar-text px-4 py-1 text-uppercase text-muted fw-bold" style="font-size: 0.65rem;">Planning Module</div>
+
+          <a class="nav-link" hx-get="/planning/" hx-target="#content-canvas" hx-push-url="true" href="/planning/">
+            <i data-lucide="bar-chart-3" class="size-5"></i>
+            <span class="sidebar-text">Planning Home</span>
+          </a>
+          <a class="nav-link" hx-get="/planning/plans/" hx-target="#content-canvas" hx-push-url="true" href="/planning/plans/">
+            <i data-lucide="folder-kanban" class="size-5"></i>
+            <span class="sidebar-text">Plans & Projects</span>
+          </a>
+          <a class="nav-link" hx-get="/planning/committees/" hx-target="#content-canvas" hx-push-url="true" href="/planning/committees/">
+            <i data-lucide="users-2" class="size-5"></i>
+            <span class="sidebar-text">Committees</span>
+          </a>
+
+          <!-- System Administration -->
+          {% if user.role == 'superadmin' %}
+          <hr class="border-secondary opacity-25 mx-3 my-2 sidebar-text">
+          <div class="sidebar-text px-4 py-1 text-uppercase text-danger fw-bold" style="font-size: 0.65rem;">Administration</div>
+          <a class="nav-link text-warning-emphasis" href="{% url 'user_management' %}">
+            <i data-lucide="shield-alert" class="size-5 text-danger"></i>
+            <span class="sidebar-text text-danger-emphasis">User Directory</span>
+          </a>
+          {% endif %}
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main Content Workspace -->
+    <div class="flex-grow-1 min-vh-100 d-flex flex-column" style="min-width: 0;">
+      <!-- Sticky Header -->
+      <nav class="navbar main-navbar navbar-expand px-4 py-2 sticky-top">
+        <div class="container-fluid p-0 d-flex justify-content-between align-items-center">
+          <button class="btn btn-light border p-2" type="button" onclick="toggleSidebar()">
+            <i data-lucide="menu" class="size-5"></i>
+          </button>
+          
+          <div class="ms-auto d-flex align-items-center gap-3">
+            <div class="text-end d-none d-sm-block">
+              <span class="fw-semibold text-dark d-block small">{{ user.username|default:"Guest Visitor" }}</span>
+              <small class="text-muted text-uppercase" style="font-size: 0.7rem; font-weight:600;">Role: {{ user.role|default:"Public" }}</small>
+            </div>
+            
+            <div class="dropdown">
+              <button class="btn p-0 border-0" type="button" id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="avatar-wrapper shadow-sm">
+                  {{ user.username|slice:":1"|upper|default:"G" }}
+                </div>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="userProfileDropdown">
+                <li class="px-3 py-2 border-bottom d-md-none">
+                  <div class="fw-bold">{{ user.username }}</div>
+                  <small class="text-muted">{{ user.email }}</small>
+                </li>
+                <li><a class="dropdown-item py-2 small d-flex align-items-center gap-2" href="{% url 'launchpad' %}"><i data-lucide="home" class="size-4"></i> Launchpad Portal</a></li>
+                {% if user.role == 'superadmin' %}
+                <li><a class="dropdown-item py-2 small d-flex align-items-center gap-2" href="{% url 'user_management' %}"><i data-lucide="users" class="size-4"></i> User Management</a></li>
+                {% endif %}
+                <li><hr class="dropdown-divider my-1 opacity-25"></li>
+                <li><a class="dropdown-item py-2 small text-danger d-flex align-items-center gap-2" href="{% url 'logout' %}"><i data-lucide="log-out" class="size-4"></i> Sign Out</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Canvas Container -->
+      <main class="p-4 flex-grow-1" id="content-canvas">
+        {% block content %}
+        <!-- Dynamic loading container -->
+        {% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Side nav active selection highlight listener
+    document.addEventListener("htmx:afterOnLoad", function() {
+        lucide.createIcons();
+        highlightActiveLink();
+    });
+
+    function highlightActiveLink() {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll(".sidebar .nav-link");
+        navLinks.forEach(link => {
+            const href = link.getAttribute("href");
+            if (href && (currentPath === href || (href !== "/" && currentPath.startsWith(href)))) {
+                link.classList.add("active");
+            } else {
+                link.classList.remove("active");
+            }
+        });
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById("appSidebar");
+        sidebar.classList.toggle("collapsed");
+        const texts = document.querySelectorAll(".sidebar-text");
+        texts.forEach(t => {
+            if (sidebar.classList.contains("collapsed")) {
+                t.style.display = "none";
+            } else {
+                t.style.display = "block";
+            }
+        });
+    }
+
+    // Auto-hide toast notifications
+    setTimeout(() => {
+      const activeToasts = document.querySelectorAll('.toast');
+      activeToasts.forEach(t => {
+        const bsToast = bootstrap.Toast.getInstance(t) || new bootstrap.Toast(t);
+        bsToast.hide();
+      });
+    }, 4000);
+
+    // Run on startup
+    highlightActiveLink();
+  </script>
+</body>
+</html>

@@ -69,6 +69,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
       def create(self, validated_data):
           app = validated_data.pop('app')
-          user = User.objects.create_user(role= 'user', **validated_data) 
+          user = User.objects.create_user(role= 'data_entry', **validated_data) 
           user.assigned_apps.add(app) 
           return user

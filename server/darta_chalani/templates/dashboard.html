@@ -1,0 +1,455 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{% block title %}System Dashboard{% endblock %} - OAS</title>
+
+    <!-- Bootstrap 5.3 CSS -->
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Production styling for structural components -->
+
+    <style>
+      :root {
+        --sidebar-width: 260px;
+
+        --sidebar-bg: #1e293b; /* Premium slate color */
+
+        --header-height: 70px;
+      }
+
+      body {
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+
+        background-color: #f8fafc;
+
+        overflow-x: hidden;
+      }
+
+      /* Sidebar Styling */
+
+      #sidebar-wrapper {
+        min-width: var(--sidebar-width);
+
+        max-width: var(--sidebar-width);
+
+        background-color: var(--sidebar-bg);
+
+        min-height: 100vh;
+
+        transition: margin 0.25s ease-out;
+
+        z-index: 1030;
+      }
+
+      .sidebar-heading {
+        height: var(--header-height);
+
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+        display: flex;
+
+        align-items: center;
+
+        padding: 0 1.5rem;
+      }
+
+      .nav-link-custom {
+        color: #94a3b8;
+
+        padding: 0.75rem 1.5rem;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 10px;
+
+        font-weight: 500;
+
+        transition: all 0.2s ease;
+
+        text-decoration: none;
+
+        border-left: 4px solid transparent;
+      }
+
+      .nav-link-custom:hover,
+      .nav-link-custom[aria-expanded="true"] {
+        color: #fff;
+
+        background-color: rgba(255, 255, 255, 0.04);
+      }
+
+      .nav-link-custom.active {
+        color: #3b82f6;
+
+        background-color: rgba(59, 130, 246, 0.08);
+
+        border-left-color: #3b82f6;
+      }
+
+      /* Submenu adjustments */
+
+      .submenu-box {
+        background-color: rgba(0, 0, 0, 0.15);
+      }
+
+      .submenu-item {
+        padding: 0.6rem 1.5rem 0.6rem 3.2rem;
+
+        color: #94a3b8;
+
+        display: block;
+
+        text-decoration: none;
+
+        font-size: 0.9rem;
+
+        transition: color 0.2s ease;
+      }
+
+      .submenu-item:hover {
+        color: #fff;
+      }
+
+      /* Rotate chevron on collapse open */
+
+      .has-arrow .chevron-icon {
+        transition: transform 0.2s ease;
+
+        margin-left: auto;
+      }
+
+      .has-arrow[aria-expanded="true"] .chevron-icon {
+        transform: rotate(90deg);
+      }
+
+      /* Page Content Area Container Layout */
+
+      #page-content-wrapper {
+        min-width: 0;
+
+        width: 100%;
+      }
+
+      .main-navbar {
+        height: var(--header-height);
+
+        background: #fff;
+
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      /* Responsive Mobile Toggles overrides */
+      @media (min-width: 769px) {
+        #wrapper #sidebar-wrapper {
+          margin-left: 0;
+          transition: margin 0.25s ease-out;
+        }
+        /* When hamburger is clicked, hide the sidebar by shifting it left */
+        body.sb-toggled #wrapper #sidebar-wrapper {
+          margin-left: calc(-1 * var(--sidebar-width));
+        }
+      }
+
+      @media (max-width: 768px) {
+        #sidebar-wrapper {
+          margin-left: calc(-1 * var(--sidebar-width));
+
+          position: fixed;
+        }
+
+        body.sb-toggled #sidebar-wrapper {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="d-flex" id="wrapper">
+      <!-- SIDEBAR NAV COMPONENT -->
+
+      <div id="sidebar-wrapper" class="shadow-lg">
+        <div class="sidebar-heading">
+          <span class="text-white fw-bold fs-5 d-flex align-items-center gap-2">
+            <i data-lucide="layout-dashboard" class="text-primary"></i> OAS
+            Portal
+          </span>
+        </div>
+
+        <div class="nav flex-column pt-3" id="sidebarAccordion">
+          <a href="{% url 'home' %}" class="nav-link-custom active">
+            <i data-lucide="home"></i> होम पेज
+          </a>
+          <a
+            href="#officesetupSubmenu"
+            data-bs-toggle="collapse"
+            class="nav-link-custom has-arrow"
+            aria-expanded="false"
+            aria-controls="officesetupSubmenu"
+          >
+            <i data-lucide="file-text"></i> अफिस सेटअप
+            <i data-lucide="chevron-right" class="chevron-icon size-4"></i>
+          </a>
+          <div
+            class="collapse submenu-box"
+            id="officesetupSubmenu"
+            data-bs-parent="#sidebarAccordion"
+          >
+            <a href="/darta-chalani/" class="submenu-item">📑 कार्यालय विवरण</a>
+            <a href="/darta-chalani/darta/add/" class="submenu-item">शाखाहरु</a>
+            <a href="/darta-chalani/darta/add/" class="submenu-item">पद</a>
+            <a href="/darta-chalani/darta/add/" class="submenu-item">तह</a>
+            <a href="/darta-chalani/darta/add/" class="submenu-item"
+              >कर्मचारी विवरण</a
+            >
+          </div>
+
+          <a
+            href="#dartaSubmenu"
+            data-bs-toggle="collapse"
+            class="nav-link-custom has-arrow"
+            aria-expanded="false"
+            aria-controls="dartaSubmenu"
+          >
+            <i data-lucide="file-text"></i> दर्ता प्रणाली
+            <i data-lucide="chevron-right" class="chevron-icon size-4"></i>
+          </a>
+          <div
+            class="collapse submenu-box"
+            id="dartaSubmenu"
+            data-bs-parent="#sidebarAccordion"
+          >
+            <a href="{% url 'darta_list' %}" class="submenu-item"
+              >📑 दर्ता सुची
+            </a>
+            <a href="{% url 'add_darta' %}" class="submenu-item"
+              >➕ दर्ता थप
+            </a>
+            
+          </div>
+          <a
+            href="#chalaniSubmenu"
+            data-bs-toggle="collapse"
+            class="nav-link-custom has-arrow"
+            aria-expanded="false"
+            aria-controls="chalaniSubmenu"
+          >
+            <i data-lucide="file-text"></i> चलानी प्रणाली
+            <i data-lucide="chevron-right" class="chevron-icon size-4"></i>
+          </a>
+          <div
+            class="collapse submenu-box"
+            id="chalaniSubmenu"
+            data-bs-parent="#sidebarAccordion"
+          >
+            <a href="/darta-chalani/" class="submenu-item">📑 चलानी सुची</a>
+            <a href="/darta-chalani/chalani/add/" class="submenu-item"
+              >📤 चलानी थप</a
+            >
+          </div>
+
+          <a
+            href="#planningSubmenu"
+            data-bs-toggle="collapse"
+            class="nav-link-custom has-arrow"
+            aria-expanded="false"
+            aria-controls="planningSubmenu"
+          >
+            <i data-lucide="bar-chart-3"></i> Planning System
+            <i data-lucide="chevron-right" class="chevron-icon size-4"></i>
+          </a>
+          <div
+            class="collapse submenu-box"
+            id="planningSubmenu"
+            data-bs-parent="#sidebarAccordion"
+          >
+            <a href="/plans/" class="submenu-item">📈 Budget Formulations</a>
+            <a href="/plans/" class="submenu-item">🏢 Ward Executions</a>
+          </div>
+
+          <a href="/api/v1/users/" class="nav-link-custom">
+            <i data-lucide="users"></i> User Administration
+          </a>
+        </div>
+      </div>
+      <!-- MAIN CONTENT LAYER WRAPPER -->
+
+      <div id="page-content-wrapper" class="d-flex flex-column">
+        <!-- STICKY GLOBAL HEADER -->
+
+        <nav
+          class="navbar navbar-expand navbar-light main-navbar px-4 sticky-top"
+        >
+          <!-- Left: Mobile Toggle & Context Meta -->
+
+          <div class="d-flex align-items-center gap-3">
+            <button
+              class="btn btn-light border btn-sm shadow-sm"
+              id="sidebarToggle"
+            >
+              <i data-lucide="menu"></i>
+            </button>
+
+            <!-- Industry context branding tag inside header -->
+
+            <div class="d-none d-md-block">
+              <span
+                class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded fw-bold fs-6"
+              >
+                🏛️ Bagmati Rural Municipality Office
+              </span>
+            </div>
+          </div>
+
+          <!-- Right: Dropdowns, Notifications & Identity Handling -->
+
+          <div class="ms-auto d-flex align-items-center gap-3">
+            <!-- Notification Bell Feature placeholder -->
+
+            <button
+              class="btn btn-light position-relative btn-sm rounded-circle p-2 border"
+            >
+              <i data-lucide="bell" style="width: 18px; height: 18px"></i>
+
+              <span
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                style="font-size: 0.65rem"
+              >
+                3
+              </span>
+            </button>
+
+            <div class="vr bg-secondary opacity-25 my-2"></div>
+
+            <!-- User Identity Account Details Dropdown -->
+
+            <div class="dropdown">
+              <button
+                class="btn btn-light border dropdown-toggle d-flex align-items-center gap-2 py-1.5 px-3"
+                type="button"
+                id="userMenuDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <div
+                  class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-semibold text-uppercase"
+                  style="width: 28px; height: 28px; font-size: 0.85rem"
+                >
+                  {{ user.username|slice:":2"|default:"OP" }}
+                </div>
+
+                <span class="d-none d-sm-inline small fw-medium text-secondary"
+                  >{{ user.username|default:"Operator" }}</span
+                >
+              </button>
+
+              <ul
+                class="dropdown-menu dropdown-menu-end border-0 shadow mt-2"
+                aria-labelledby="userMenuDropdown"
+              >
+                <li><h6 class="dropdown-header">System Access Role</h6></li>
+
+                <li>
+                  <a
+                    class="dropdown-item d-flex align-items-center gap-2 small"
+                    href="#"
+                    ><i data-lucide="user" class="size-4"></i> Profile
+                    Settings</a
+                  >
+                </li>
+
+                <li><hr class="dropdown-divider" /></li>
+
+                <li>
+                  <!-- Production Safe Post Logging Out Action -->
+
+                  <form action="{% url 'logout' %}" method="post" class="px-2">
+                    {% csrf_token %}
+
+                    <button
+                      type="submit"
+                      class="dropdown-item d-flex align-items-center gap-2 text-danger rounded small"
+                    >
+                      <i data-lucide="log-out" class="size-4"></i> Secure Sign
+                      Out
+                    </button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+
+        <!-- BLOCK RENDER INJECTION INNER ZONE -->
+
+        <div class="container-fluid p-4 flex-grow-1">
+          {% block content %}
+
+          <!-- Fallback content container -->
+
+          <div class="card border-0 shadow-sm p-4">
+            <h4 class="fw-bold text-secondary">Active Worksurface Container</h4>
+
+            <p class="text-muted mb-0">
+              Select an operational unit module from the structural navigation
+              bar on the left side to get started.
+            </p>
+          </div>
+
+          {% endblock %}
+        </div>
+
+        <!-- Footer -->
+
+        <footer
+          class="bg-white border-top py-2 px-4 text-center text-muted small mt-auto"
+        >
+          &copy; {% now "Y" %} Designed and developed by Sujan Naharki Chhetri
+        </footer>
+      </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Lucide Icons Development Delivery CDN Package -->
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+      // Run instantiation processing loop over markup targeting data structures
+
+      lucide.createIcons();
+
+      // Responsive responsive state sidebar animation handler initialization
+
+      window.addEventListener("DOMContentLoaded", (event) => {
+        const sidebarToggle = document.body.querySelector("#sidebarToggle");
+
+        if (sidebarToggle) {
+          sidebarToggle.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            document.body.classList.toggle("sb-toggled");
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
