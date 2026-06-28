@@ -104,22 +104,19 @@ def darta_detail_view(request, pk):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def darta_create_view(request):
-    # -------------------------------------------------------------------------
-    # 1. POST ACTION: Process form payloads and dispatch to DRF
-    # -------------------------------------------------------------------------
     if request.method == "POST":
         payload = {
-            "darta_samuha": request.POST.get("darta_samuha"),
-            "darta_date": request.POST.get("darta_date"),
-            "letter_sender": request.POST.get("letter_sender"),
-            "sender_email": request.POST.get("sender_email") or None,
-            "sender_address": request.POST.get("sender_address") or None,
-            "letter_date": request.POST.get("letter_date") or None,
-            "ref_number": request.POST.get("ref_number"),
-            "receiver_section": request.POST.get("receiver_section"),
-            "subject": request.POST.get("subject"),
-            "remarks": request.POST.get("remarks") or None,
-        }
+    "darta_samuha": request.POST.get("darta_samuha"),
+    "darta_date": request.POST.get("darta_date"),
+    "letter_sender": request.POST.get("letter_sender"),
+    "sender_email": request.POST.get("sender_email") or None,
+    "sender_address": request.POST.get("sender_address") or None,
+    "letter_date": request.POST.get("letter_date") or None,
+    "ref_number": request.POST.get("ref_number") or None,
+    "receiver_section": request.POST.get("receiver_section"),
+    "subject": request.POST.get("subject"),
+    "remarks": request.POST.get("remarks") or None,
+}
 
         try:
             response = requests.post(

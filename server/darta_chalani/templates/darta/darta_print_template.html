@@ -15,29 +15,29 @@
 <body onload="window.print();">
     <div class="container-fluid py-3">
         <div class="text-center mb-4">
-            <h5>आबुँखैरेनी गाउँपालिका चलानी अभिलेख व्यवस्थापन प्रणाली</h5>
+            <h5>आबुँखैरेनी गाउँपालिका दर्ता अभिलेख व्यवस्थापन प्रणाली</h5>
         </div>
         <table class="table table-bordered table-sm align-middle">
             <thead class="table-light">
                 <tr>
-                    <th>चलानी नं</th>
-                    <th>चलानी मिति</th>
+                    <th>दर्ता नं</th>
+                    <th>दर्ता मितिः</th>
                     <th>पत्रको मिति</th>
-                    <th>पठाउने शाखा</th>
+                    <th>पठाउने कार्यालय</th>
                     <th>बिषय</th>
-                    <th>पाउने कार्यालय</th>
+                    <th>पाउने शाखा</th>
                     <th>कैफियत</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in records %}
                 <tr>
-                    <td>{{ item.chalani_number }}</td>
-                    <td>{{ item.chalani_date }}</td>
+                    <td>{{ item.darta_number }}</td>
+                    <td>{{ item.darta_date }}</td>
                     <td>{{ item.letter_date }}</td>
-                    <td>{{ item.sender_section }}</td>
+                    <td>{{ item.letter_sender }}</td>
                     <td>{{ item.subject }}</td>
-                    <td>{{ item.letter_receiver }}</td>
+                    <td>{{ item.receiver_section }}</td>
                     <td>{{ item.remarks }}</td>
                 </tr>
                 {% endfor %}

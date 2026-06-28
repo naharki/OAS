@@ -75,9 +75,9 @@ Darta Form
 
           <div class="mb-3">
             <label class="form-label">दर्ता नं. *</label>
-            <input type="text" name="darta_number" class="form-control"
-              value="{{ instance.darta_number }}"
-              {% if is_detail_mode %}disabled{% endif %} required>
+            <input type="text" class="form-control"
+                  value="{{ instance.darta_number }}"
+                  disabled>
           </div>
 
           <div class="mb-3">
@@ -87,13 +87,17 @@ Darta Form
               {% if is_detail_mode %}disabled{% endif %} required>
           </div>
 
+          
           <div class="mb-3">
             <label class="form-label">दर्ता मिति *</label>
-            <input type="date" name="darta_date" class="form-control"
-              value="{{ instance.darta_date }}"
-              {% if is_detail_mode %}disabled{% endif %} required>
+            <input type="text" 
+                   name="darta_date" 
+                   class="form-control nepali-date-picker"
+                   value="{{ instance.darta_date|default:'' }}"
+                   placeholder="YYYY-MM-DD"
+                   autocomplete="off"
+                   {% if is_detail_mode %}disabled{% endif %} required>
           </div>
-
         </div>
       </div>
 
@@ -129,13 +133,17 @@ Darta Form
               value="{{ instance.sender_address }}"
               {% if is_detail_mode %}disabled{% endif %} required>
           </div>
-
           <div class="mb-3">
             <label class="form-label">पत्र मिति *</label>
-            <input type="date" name="letter_date" class="form-control"
-              value="{{ instance.letter_date }}"
-              {% if is_detail_mode %}disabled{% endif %} required>
+            <input type="text" 
+                   name="letter_date" 
+                   class="form-control nepali-date-picker"
+                   value="{{ instance.letter_date|default:'' }}"
+                   placeholder="YYYY-MM-DD"
+                   autocomplete="off"
+                   {% if is_detail_mode %}disabled{% endif %} required>
           </div>
+
 
         </div>
       </div>
@@ -144,12 +152,9 @@ Darta Form
 
     <!-- FULL WIDTH -->
     <div class="col-12">
-
       <div class="card form-card shadow-sm">
         <div class="card-body">
-
           <div class="section-title mb-3">Document Details</div>
-
           <div class="row g-3">
 
             <!-- OPTIONAL REF NUMBER -->
@@ -158,7 +163,7 @@ Darta Form
               <input type="text" name="ref_number" class="form-control"
                 value="{{ instance.ref_number|default:'' }}"
                 {% if is_detail_mode %}disabled{% endif %}
-                placeholder="Ref no. if available">
+                placeholder="Ref no. if available" required>
             </div>
 
             <div class="col-md-4">
@@ -167,22 +172,21 @@ Darta Form
                 value="{{ instance.receiver_section }}"
                 {% if is_detail_mode %}disabled{% endif %} required>
             </div>
-
-            <div class="col-md-4">
-              <label class="form-label">विषय *</label>
-              <input type="text" name="subject" class="form-control"
-                value="{{ instance.subject }}"
-                {% if is_detail_mode %}disabled{% endif %} required>
-            </div>
+           
 
             <!-- OPTIONAL REMARKS -->
-            <div class="col-12">
+            <div class="col-4">
               <label class="form-label">कैफियत (Optional)</label>
               <textarea name="remarks" class="form-control" rows="3"
                 {% if is_detail_mode %}disabled{% endif %}
                 placeholder="Additional notes...">{{ instance.remarks|default:'' }}</textarea>
             </div>
-
+             <div class="col-md-12">
+              <label class="form-label">विषय *</label>
+              <input type="text" name="subject" class="form-control"
+                value="{{ instance.subject }}"
+                {% if is_detail_mode %}disabled{% endif %} required>
+            </div>
           </div>
 
         </div>
@@ -207,5 +211,5 @@ Darta Form
   </div>
 
 </form>
-
+{% include "partials/nepali_date_picker.html" %}
 {% endblock %}

@@ -23,11 +23,19 @@ def normalize_excel_date_special_Case(value):
         return value.strftime("%Y/%m/%d")
     return str(value).split(" ")[0]
 class DartaViewSet(viewsets.ModelViewSet):
-   queryset = Darta.objects.all().order_by("darta_number")
-   serializer_class = DartaSerializer
+    queryset = Darta.objects.all().order_by("darta_number")
+    serializer_class = DartaSerializer
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        # 🚨 ensure auto-number is not manually set
+        data.pop("darta_number", None)
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-   @action(detail=False, methods=['post'], url_path='excel-upload')
-   def excel_upload(self, request):
+@action(detail=False, methods=['post'], url_path='excel-upload')
+def excel_upload(self, request):
        file = request.FILES.get("file")
        if not file : 
            return Response(

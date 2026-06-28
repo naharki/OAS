@@ -1,0 +1,27 @@
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // Target all text inputs designated for the Nepali Calendar
+    var dateInputs = document.querySelectorAll(".nepali-date-picker");
+
+    dateInputs.forEach(function (input) {
+      // If the element is disabled (Detail View), bypass initialization entirely
+      if (input.hasAttribute("disabled")) {
+        return;
+      }
+
+      var modalContainer = input.getAttribute("data-modal-container");
+      var config = {
+        dateFormat: "YYYY-MM-DD",
+        ndpYear: true,
+        ndpMonth: true,
+        miniEnglishDates: true,
+      };
+
+      if (modalContainer) {
+        config.container = modalContainer;
+      }
+
+      input.NepaliDatePicker(config);
+    });
+  });
+</script>
