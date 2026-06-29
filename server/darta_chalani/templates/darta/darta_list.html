@@ -1,5 +1,10 @@
-{% extends "dashboard.html" %} {% block title %}Darta Document Records
-Register{% endblock %} {% block content %}
+{% extends "dashboard.html" %} 
+{% block title %}Darta Document Records Register{% endblock %} 
+
+{% block content %}
+<!-- Include Nepalese Datepicker CSS Resources directly from CDN -->
+<link href="https://nepalidatepicker.sajanmaharjan.com.np/v5/dist/nepali.datepicker.v5.min.css" rel="stylesheet" type="text/css" />
+
 <style>
   .table-responsive {
     overflow: visible !important;
@@ -10,22 +15,33 @@ Register{% endblock %} {% block content %}
   .transition-all {
     transition: all 0.2s ease-in-out;
   }
+  .filter-input {
+    border-radius: 6px;
+  }
+  .filter-input:focus {
+    box-shadow: none;
+    border-color: #4f46e5;
+  }
+  /* Style class to dynamically hide mismatched content */
+  .filtered-out {
+    display: none !important;
+  }
 </style>
+
 <div class="d-flex justify-content-between align-items-center mb-2">
   <div>
     <h5 class="fw-bold text-dark m-0">दर्ता अभिलेख सूची</h5>
   </div>
 </div>
 
+<!-- ACTIONS AND COMPREHENSIVE LIVE FILTERS PANEL -->
 <div class="card border-0 shadow-sm mb-2">
   <div class="card-body bg-white rounded">
-    <div class="row g-3 align-items-center justify-content-between">
+    
+    <!-- Row 1: Global Setup controls -->
+    <div class="row g-3 align-items-center justify-content-between mb-3 border-bottom pb-3">
       <div class="col-md-3">
-        <form
-          method="get"
-          id="perPageForm"
-          class="d-flex align-items-center gap-2"
-        >
+        <form method="get" id="perPageForm" class="d-flex align-items-center gap-2">
           <label class="small text-muted text-nowrap">Show entries:</label>
           <select
             name="per_page"
@@ -41,43 +57,48 @@ Register{% endblock %} {% block content %}
       </div>
 
       <div class="col-md-4 text-md-end">
-        <div
-          class="d-inline-flex align-items-center justify-content-md-end flex-wrap gap-2"
-        >
-          <a
-            href="{% url 'add_darta' %}"
-            class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 shadow-sm fw-semibold px-3 py-1.5"
-          >
-            <i data-lucide="plus-circle" class="size-3"></i>
-            <span></span>
+        <div class="d-inline-flex align-items-center justify-content-md-end flex-wrap gap-2">
+          <a href="{% url 'add_darta' %}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 shadow-sm fw-semibold px-3 py-1.5">
+            <i data-lucide="plus-circle" class="size-3"></i><span>नयाँ थप्नुहोस्</span>
           </a>
-
-          <a
-            href="{% url 'export_darta_excel' %}"
-            class="btn btn-outline-success btn-sm d-inline-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5"
-          >
-            <i data-lucide="sheet" class="size-4"></i>
-            <span></span>
+          <a href="{% url 'export_darta_excel' %}" class="btn btn-outline-success btn-sm d-inline-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5">
+            <i data-lucide="sheet" class="size-4"></i><span></span>
           </a>
-
-          <a
-            href="{% url 'export_darta_pdf' %}"
-            target="_blank"
-            class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5"
-          >
-            <i data-lucide="file-text" class="size-4"></i>
-            <span></span>
+          <a href="{% url 'export_darta_pdf' %}" target="_blank" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5">
+            <i data-lucide="file-text" class="size-4"></i><span></span>
           </a>
         </div>
       </div>
     </div>
+
+    <!-- Row 2: Live Multi-Field Filter Interface Matrix -->
+    <div id="liveGridFilterPanel">
+      <div class="row g-2">
+        <div class="col-md-2">
+          <input type="text" id="liveDartaNum" class="form-control form-control-sm filter-input" placeholder="दर्ता नं.">
+        </div>
+        <div class="col-md-3">
+          <input type="text" id="liveSender" class="form-control form-control-sm filter-input" placeholder="पठाउने कार्यालय/व्यक्ति">
+        </div>
+        <div class="col-md-3">
+          <input type="text" id="liveSubject" class="form-control form-control-sm filter-input" placeholder="विषय">
+        </div>
+        <div class="col-md-2">
+          <input type="text" id="liveStartDate" class="form-control form-control-sm filter-input ndp-nepali-calendar" placeholder="मिति देखि (From Date)" autocomplete="off">
+        </div>
+        <div class="col-md-2">
+          <input type="text" id="liveEndDate" class="form-control form-control-sm filter-input ndp-nepali-calendar" placeholder="मिति सम्म (To Date)" autocomplete="off">
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <div class="card border-0 shadow-sm">
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 text-secondary">
+      <table class="table table-hover align-middle mb-0 text-secondary" id="dartaMainTable">
         <thead class="table-light text-dark fw-semibold small">
           <tr>
             <th class="ps-4">दर्ता नं.</th>
@@ -90,26 +111,27 @@ Register{% endblock %} {% block content %}
         </thead>
         <tbody class="small">
           {% for item in page_obj %}
-          <tr>
+          <!-- Attached explicit metadata fields for rapid runtime string matching -->
+          <tr class="darta-row" 
+              data-darta="{{ item.darta_number }}" 
+              data-date="{{ item.darta_date }}" 
+              data-sender="{{ item.letter_sender }}" 
+              data-subject="{{ item.subject }}">
             <td class="ps-4 fw-bold text-dark">{{ item.darta_number }}</td>
             <td>
-              <span class="badge bg-light text-secondary border"
-                >{{ item.darta_date }}</span
-              >
+              <span class="badge bg-light text-secondary border">{{ item.darta_date }}</span>
             </td>
             <td>
-              <div class=" text-dark" >{{ item.letter_sender }}</div>
+              <div class="text-dark">{{ item.letter_sender }}</div>
             </td>
             <td>
-              <span class="badge bg-primary-subtle text-primary mb-1"
-                >{{ item.ref_number }}</span
-              >
+              {% if item.ref_number %}
+              <span class="badge bg-primary-subtle text-primary mb-1">{{ item.ref_number }}</span>
+              {% endif %}
               <div class="text-dark fw-medium">{{ item.subject }}</div>
             </td>
             <td>
-              <span class="text-info fw-semibold text-uppercase"
-                >{{ item.receiver_section }}</span
-              >
+              <span class="text-info fw-semibold text-uppercase">{{ item.receiver_section }}</span>
             </td>
             <td class="text-center pe-4 position-relative">
               <div class="dropdown position-static">
@@ -121,46 +143,21 @@ Register{% endblock %} {% block content %}
                   data-bs-boundary="viewport"
                   aria-expanded="false"
                 >
-                  <i
-                    data-lucide="more-horizontal"
-                    class="size-4 text-secondary"
-                  ></i>
+                  <i data-lucide="more-horizontal" class="size-4 text-secondary"></i>
                 </button>
-                <ul
-                  class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 mt-1 rounded-3 bg-white"
-                  style="min-width: 160px; z-index: 1060"
-                  aria-labelledby="dropdownAction{{ item.id }}"
-                >
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 mt-1 rounded-3 bg-white" style="min-width: 160px; z-index: 1060">
                   <li>
-                    <h6
-                      class="dropdown-header text-uppercase tracking-wider text-muted font-monospace mb-1"
-                      style="font-size: 0.7rem"
-                    >
-                      Actions
-                    </h6>
-                  </li>
-                  <li>
-                    <a
-                      href="{% url 'darta_detail' item.id %}"
-                      class="dropdown-item d-flex align-items-center gap-2 small text-dark py-2 rounded-2 hover-bg-light"
-                    >
-                      <i data-lucide="eye" class="size-4 text-muted"></i>
-                      <span>Details</span>
+                    <a href="{% url 'darta_detail' item.id %}" class="dropdown-item d-flex align-items-center gap-2 small text-dark py-2 rounded-2 hover-bg-light">
+                      <i data-lucide="eye" class="size-4 text-muted"></i><span>Details</span>
                     </a>
                   </li>
-
                   {% if user.is_superuser %}
                   <li><hr class="dropdown-divider my-1 opacity-25" /></li>
                   <li>
-                    <a
-                      href="{% url 'edit_darta' item.id %}"
-                      class="dropdown-item d-flex align-items-center gap-2 small text-primary py-2 rounded-2 fw-semibold hover-bg-primary-subtle"
-                    >
-                      <i data-lucide="edit-2" class="size-4 text-primary"></i>
-                      <span>Edit</span>
+                    <a href="{% url 'edit_darta' item.id %}" class="dropdown-item d-flex align-items-center gap-2 small text-primary py-2 rounded-2 fw-semibold hover-bg-primary-subtle">
+                      <i data-lucide="edit-2" class="size-4 text-primary"></i><span>Edit</span>
                     </a>
                   </li>
-
                   {% endif %}
                 </ul>
               </div>
@@ -169,49 +166,41 @@ Register{% endblock %} {% block content %}
           {% empty %}
           <tr>
             <td colspan="6" class="text-center py-5 text-muted">
-              ⚠️ No document records available at this station framework.
+              ⚠️ No document records match your current criteria.
             </td>
           </tr>
           {% endfor %}
+          
+          <!-- Live local error notification block if filters produce zero items -->
+          <tr id="liveEmptyStateRow" class="d-none">
+            <td colspan="6" class="text-center py-5 text-muted fw-medium">
+              ⚠️ मिल्दो विवरण फेला परेन (No matching records found in this view context).
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  {# Industry Standard Elided Pagination Implementation #}
+  {# Bottom Navigation Layout controls #}
   {% if page_obj.has_other_pages and per_page != 'all' %}
-  <div class="card-footer bg-white border-top py-2 d-flex align-items-center justify-content-between">
+  <div class="card-footer bg-white border-top py-2 d-flex align-items-center justify-content-between" id="paginationWrapperCard">
     <span class="small text-muted">
       Showing Page <strong>{{ page_obj.number }}</strong> of {{ page_obj.paginator.num_pages }}
     </span>
     <nav aria-label="Registry table navigation">
       <ul class="pagination pagination-sm mb-0 gap-1">
-        
-        {# Previous Button (<) #}
         {% if page_obj.has_previous %}
         <li class="page-item">
-          <a class="page-link rounded px-2.5 py-1.5 d-flex align-items-center" 
-             href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}" 
-             aria-label="Previous">
-            <span aria-hidden="true">&lsaquo;</span>
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">
+            <span>&lsaquo;</span>
           </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-          <span class="page-link rounded px-2.5 py-1.5 d-flex align-items-center">&lsaquo;</span>
         </li>
         {% endif %}
 
-        {# Main Elided Sequence Loop #}
         {% for num in custom_page_range %}
-          {% if num == page_obj.paginator.ELLIPSIS %}
-            <li class="page-item disabled">
-              <span class="page-link border-0 bg-transparent text-muted px-2">...</span>
-            </li>
-          {% elif num == page_obj.number %}
-            <li class="page-item active" aria-current="page">
-              <span class="page-link rounded fw-bold px-3">{{ num }}</span>
-            </li>
+          {% if num == page_obj.number %}
+            <li class="page-item active"><span class="page-link rounded fw-bold px-3">{{ num }}</span></li>
           {% else %}
             <li class="page-item">
               <a class="page-link rounded px-3" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
@@ -219,24 +208,132 @@ Register{% endblock %} {% block content %}
           {% endif %}
         {% endfor %}
 
-        {# Next Button (>) #}
         {% if page_obj.has_next %}
         <li class="page-item">
-          <a class="page-link rounded px-2.5 py-1.5 d-flex align-items-center" 
-             href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}" 
-             aria-label="Next">
-            <span aria-hidden="true">&rsaquo;</span>
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">
+            <span>&rsaquo;</span>
           </a>
         </li>
-        {% else %}
-        <li class="page-item disabled">
-          <span class="page-link rounded px-2.5 py-1.5 d-flex align-items-center">&rsaquo;</span>
-        </li>
         {% endif %}
-
       </ul>
     </nav>
   </div>
   {% endif %}
 </div>
+
+<!-- Include Nepalese Datepicker Script Asset from CDN -->
+<script src="https://nepalidatepicker.sajanmaharjan.com.np/v5/dist/nepali.datepicker.v5.min.js" type="text/javascript"></script>
+
+<!-- LIVE MATRIX REACTION ENGINE SCRIPT -->
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function() {
+    const inputDarta = document.getElementById('liveDartaNum');
+    const inputSender = document.getElementById('liveSender');
+    const inputSubject = document.getElementById('liveSubject');
+    const inputStart = document.getElementById('liveStartDate');
+    const inputEnd = document.getElementById('liveEndDate');
+    
+    const rows = document.querySelectorAll('.darta-row');
+    const liveEmptyStateRow = document.getElementById('liveEmptyStateRow');
+    const paginationWrapperCard = document.getElementById('paginationWrapperCard');
+
+    // Central Filter Evaluator
+    if (window.NepaliFunctions) {
+    function executeLiveDynamicFiltering() {
+      const queryDarta = inputDarta.value.toLowerCase().trim();
+      const querySender = inputSender.value.toLowerCase().trim();
+      const querySubject = inputSubject.value.toLowerCase().trim();
+      
+      // Extract string representations of dates directly
+      const startVal = inputStart.value.trim(); 
+      const endVal = inputEnd.value.trim();
+
+      // Convert Nepali string dates (YYYY-MM-DD) to comparable integer indexes
+      const startNum = startVal ? window.NepaliFunctions.parseNepaliDate(startVal) : null;
+      const endNum = endVal ? window.NepaliFunctions.parseNepaliDate(endVal) : null;
+
+      let matchCounter = 0;
+
+      rows.forEach(row => {
+        const rowDarta = row.getAttribute('data-darta').toLowerCase();
+        const rowSender = row.getAttribute('data-sender').toLowerCase();
+        const rowSubject = row.getAttribute('data-subject').toLowerCase();
+        const rowDateStr = row.getAttribute('data-date').trim();
+
+        // 1. Evaluate Text Inputs
+        const matchesDarta = rowDarta.includes(queryDarta);
+        const matchesSender = rowSender.includes(querySender);
+        const matchesSubject = rowSubject.includes(querySubject);
+
+        // 2. Evaluate Date Range Constraints
+        let matchesDateRange = true;
+        if (rowDateStr) {
+          try {
+            const currentRowParsed = window.NepaliFunctions.parseNepaliDate(rowDateStr);
+            
+            if (startNum && window.NepaliFunctions.compareNepaliDate(currentRowParsed, startNum) === -1) {
+              matchesDateRange = false; // Row date is older than start date
+            }
+            if (endNum && window.NepaliFunctions.compareNepaliDate(currentRowParsed, endNum) === 1) {
+              matchesDateRange = false; // Row date is newer than end date
+            }
+          } catch(e) {
+            // Fallback for unexpected date formats
+            console.error("Date calculation mismatch for sequence entry:", e);
+          }
+        } else if (startVal || endVal) {
+          matchesDateRange = false;
+        }
+
+        // Apply visual updates based on final evaluation
+        if (matchesDarta && matchesSender && matchesSubject && matchesDateRange) {
+          row.classList.remove('filtered-out');
+          matchCounter++;
+        } else {
+          row.classList.add('filtered-out');
+        }
+      });
+
+      // Handle Empty States Dynamic Layout Visibility
+      if (matchCounter === 0 && rows.length > 0) {
+        liveEmptyStateRow.classList.remove('d-none');
+      } else {
+        liveEmptyStateRow.classList.add('d-none');
+      }
+
+      // Hide baseline pagination indicators while filters are active to avoid indexing confusion
+      const statusCheck = queryDarta || querySender || querySubject || startVal || endVal;
+      if (paginationWrapperCard) {
+        if (statusCheck) {
+          paginationWrapperCard.classList.add('d-none');
+        } else {
+          paginationWrapperCard.classList.remove('d-none');
+        }
+      }
+    }
+
+    // Initialize Nepali Calendar Elements via the v5 Framework Engine
+    inputStart.nepaliDatePicker({
+      ndpYear: true,
+      ndpMonth: true,
+      onChange: executeLiveDynamicFiltering
+    });
+
+    inputEnd.nepaliDatePicker({
+      ndpYear: true,
+      ndpMonth: true,
+      onChange: executeLiveDynamicFiltering
+    });
+
+    // Attach immediate keystroke event observers for textual entry fields
+    inputDarta.addEventListener('input', executeLiveDynamicFiltering);
+    inputSender.addEventListener('input', executeLiveDynamicFiltering);
+    inputSubject.addEventListener('input', executeLiveDynamicFiltering);
+    
+    // Safety handle if inputs are manually wiped/edited using keyboard deletion paths
+    inputStart.addEventListener('input', executeLiveDynamicFiltering);
+    inputEnd.addEventListener('input', executeLiveDynamicFiltering);
+    }
+  });
+</script>
 {% endblock %}

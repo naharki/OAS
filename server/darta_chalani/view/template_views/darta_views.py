@@ -34,13 +34,37 @@ def darta_dashboard(request):
 
 @login_required
 def darta_list_view(request):
+    # 1. Fetch live baseline dataset from API endpoint
     raw_data = fetch_all_darta_from_api()
 
-    # 1. Grab configuration parameters from the request query string
+    # 2. Extract configuration and query filtering strings from GET request
     per_page = request.GET.get("per_page", "10")
     page_number = request.GET.get("page", 1)
+    
+    search_query = request.GET.get("search", "").strip()
+    search_sender = request.GET.get("sender", "").strip()
+    search_subject = request.GET.get("subject_filter", "").strip()
 
-    # 2. Compute dynamic row segmentation limits (Handle 'Show All' safely)
+    # 3. Apply programmatic list filtering based on dictionary keys (Case-Insensitive)
+    if search_query:
+        raw_data = [
+            item for item in raw_data 
+            if search_query.lower() in str(item.get("darta_number", "")).lower()
+        ]
+        
+    if search_sender:
+        raw_data = [
+            item for item in raw_data 
+            if search_sender.lower() in str(item.get("letter_sender", "")).lower()
+        ]
+        
+    if search_subject:
+        raw_data = [
+            item for item in raw_data 
+            if search_subject.lower() in str(item.get("subject", "")).lower()
+        ]
+
+    # 4. Compute Dynamic Pagination Boundaries safely
     if per_page == "all":
         limit = len(raw_data) if len(raw_data) > 0 else 10
     else:
@@ -49,13 +73,10 @@ def darta_list_view(request):
         except ValueError:
             limit = 10
 
-    # 3. Initialize Paginator instances using parsed limit boundaries
     paginator = Paginator(raw_data, limit)
     page_obj = paginator.get_page(page_number)
 
-    # 4. BEST PRACTICE: Compute elided page range windows on the backend.
-    # on_each_side=2 shows 2 pages before and after the active page.
-    # on_ends=2 keeps the first 2 and last 2 pages locked at the boundaries.
+    # 5. Build dynamic backend elided navigation window ranges
     if per_page == "all":
         custom_page_range = [1]
     else:
@@ -65,14 +86,17 @@ def darta_list_view(request):
             on_ends=2
         )
 
-    # 5. Hand off processed dataset payloads to context views
+    # 6. Hand off payload context metrics to view template engine
     return render(
         request,
         "darta/darta_list.html",
         {
             "page_obj": page_obj, 
-            "per_page": per_page,  # Passed as string to preserve template conditional checks
+            "per_page": per_page,
             "custom_page_range": custom_page_range,
+            "search_query": search_query,
+            "search_sender": search_sender,
+            "search_subject": search_subject,
         },
     )
 
