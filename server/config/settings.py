@@ -65,6 +65,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core_portal.context_processors.base_template',
+                'darta_chalani.context_processors.global_office_context',
             ],
         },
     },

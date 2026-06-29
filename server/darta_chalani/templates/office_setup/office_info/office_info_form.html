@@ -5,106 +5,200 @@
 {% endblock %}
 
 {% block content %}
-<div class="mb-4">
-  <a href="{% url 'office_list' %}" class="btn btn-link btn-sm text-decoration-none p-0 d-inline-flex align-items-center gap-1 text-muted">➔ Back to Office List</a>
-  <h3 class="fw-bold text-dark mt-2">
-    {% if is_detail_mode %}अफिसको विवरण (Office Details){% elif is_edit_mode %}अफिस सच्याउनुहोस् (Edit Office Entry){% else %}नयाँ अफिस फारम (New Office Entry){% endif %}
-  </h3>
-</div>
+<style>
+  .form-section-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+  }
+  .form-section-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  }
+  .section-indicator {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    border-color: #4f46e5;
+  }
+  .form-control:disabled {
+    background-color: #f8fafc;
+    color: #334155;
+    opacity: 1;
+    border-color: #cbd5e1;
+    cursor: not-allowed;
+  }
+  .img-preview-container {
+    background-color: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+  }
+  .btn {
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+</style>
 
-<div class="card border-0 shadow-sm mx-auto" style="max-width: 900px;">
-  <div class="card-body p-4">
-    <form method="post" action="" enctype="multipart/form-data">
-      {% csrf_token %}
+<!-- REMOVED max-width constraint to span 100% of available template workspace -->
+<div class="container-fluid px-0 w-100">
+  <!-- Navigation Header Line -->
+  <div class="mb-4 d-flex align-items-center justify-content-between">
+    <div>
+      <a href="{% url 'office_list' %}" class="btn btn-link btn-sm text-decoration-none p-0 d-inline-flex align-items-center gap-1 text-muted fw-normal mb-1">
+        ← Back to Office List
+      </a>
+      <h3 class="fw-bold text-dark m-0">
+        {% if is_detail_mode %}अफिसको विवरण (Office Details){% elif is_edit_mode %}अफिस सच्याउनुहोस् (Edit Office Entry){% else %}नयाँ अफिस फारम (New Office Entry){% endif %}
+      </h3>
+    </div>
+    
+    <!-- Contextual Status Tag badge -->
+    <div>
+      {% if is_detail_mode %}
+        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill"><i class="me-1">👁️</i> Read-Only View</span>
+      {% elif is_edit_mode %}
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill"><i class="me-1">📝</i> Editing Record #{{ instance.id }}</span>
+      {% else %}
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill"><i class="me-1">✨</i> Initialization Mode</span>
+      {% endif %}
+    </div>
+  </div>
 
-      <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
-        {% if is_detail_mode %} 🔍 View Office Details [Record #{{ instance.id }}] {% elif is_edit_mode %} 📝 Edit Office Configuration [Archive Record #{{ instance.id }}] {% else %} 📌 Base Office Categorization {% endif %}
-      </h5>
+  <form method="post" action="" enctype="multipart/form-data" class="needs-validation w-100" novalidate>
+    {% csrf_token %}
 
-      <div class="row g-3 mb-4">
+    <!-- BLOCK 1: Core Base Metadata Categorization -->
+    <div class="form-section-card p-4 mb-4 shadow-sm">
+      <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+        <span class="text-primary fs-5">📋</span>
+        <h5 class="m-0 fw-bold text-dark text-uppercase section-indicator text-secondary">Base Office Categorization</h5>
+      </div>
+
+      <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label small fw-semibold text-secondary">कार्यालयको नाम (Short Name)</label>
-          <input type="text" name="name" class="form-control" value="{{ instance.name }}" {% if is_detail_mode %}disabled{% endif %} required />
+          <label class="form-label small fw-bold text-secondary mb-1">कार्यालयको नाम (Short Name) <span class="text-danger">*</span></label>
+          <input type="text" name="name" class="form-control" value="{{ instance.name|default:'' }}" {% if is_detail_mode %}disabled{% endif %} required />
         </div>
         <div class="col-md-8">
-          <label class="form-label small fw-semibold text-secondary">कार्यालयको पुरा नाम (Full Name)</label>
-          <input type="text" name="full_name" class="form-control" value="{{ instance.full_name }}" {% if is_detail_mode %}disabled{% endif %} required />
+          <label class="form-label small fw-bold text-secondary mb-1">कार्यालयको पुरा नाम (Full Name) <span class="text-danger">*</span></label>
+          <input type="text" name="full_name" class="form-control" value="{{ instance.full_name|default:'' }}" {% if is_detail_mode %}disabled{% endif %} required />
         </div>
         <div class="col-md-4">
-          <label class="form-label small fw-semibold text-secondary">ठेगाना (Location)</label>
-          <input type="text" name="location" class="form-control" value="{{ instance.location }}" {% if is_detail_mode %}disabled{% endif %} required />
+          <label class="form-label small fw-bold text-secondary mb-1">ठेगाना (Location) <span class="text-danger">*</span></label>
+          <input type="text" name="location" class="form-control" value="{{ instance.location|default:'' }}" {% if is_detail_mode %}disabled{% endif %} required />
         </div>
         <div class="col-md-4">
-          <label class="form-label small fw-semibold text-secondary">स्थापना मिति (Established Date)</label>
-          <input type="date" name="established_date" class="form-control" value="{{ instance.established_date }}" {% if is_detail_mode %}disabled{% endif %} />
+          <label class="form-label small fw-bold text-secondary mb-1">स्थापना मिति (Established Date)</label>
+          <input type="date" name="established_date" class="form-control" value="{{ instance.established_date|default:'' }}" {% if is_detail_mode %}disabled{% endif %} />
         </div>
         <div class="col-md-4">
-          <label class="form-label small fw-semibold text-secondary">वेबसाइट (Website URL)</label>
-          <input type="url" name="website" class="form-control" value="{{ instance.website }}" {% if is_detail_mode %}disabled{% endif %} placeholder="https://..." />
+          <label class="form-label small fw-bold text-secondary mb-1">वेबसाइट (Website URL)</label>
+          <input type="url" name="website" class="form-control" value="{{ instance.website|default:'' }}" {% if is_detail_mode %}disabled{% endif %} placeholder="https://example.gov.np" />
         </div>
       </div>
+    </div>
 
-      <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">📞 सम्पर्क विवरण (Contact Communications)</h5>
-      <div class="row g-3 mb-4">
+    <!-- BLOCK 2: Communications Contact details -->
+    <div class="form-section-card p-4 mb-4 shadow-sm">
+      <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+        <span class="text-primary fs-5">📞</span>
+        <h5 class="m-0 fw-bold text-dark text-uppercase section-indicator text-secondary">सम्पर्क विवरण (Contact info)</h5>
+      </div>
+
+      <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label small fw-semibold text-secondary">इमेल (Email Address)</label>
-          <input type="email" name="email" class="form-control" value="{{ instance.email }}" {% if is_detail_mode %}disabled{% endif %} required />
+          <label class="form-label small fw-bold text-secondary mb-1">इमेल (Email Address) <span class="text-danger">*</span></label>
+          <input type="email" name="email" class="form-control" value="{{ instance.email|default:'' }}" {% if is_detail_mode %}disabled{% endif %} required />
         </div>
         <div class="col-md-6">
-          <label class="form-label small fw-semibold text-secondary">फोन नम्बर (Phone Number)</label>
-          <input type="text" name="phone_number" class="form-control" value="{{ instance.phone_number }}" {% if is_detail_mode %}disabled{% endif %} required />
+          <label class="form-label small fw-bold text-secondary mb-1">फोन नम्बर (Phone Number) <span class="text-danger">*</span></label>
+          <input type="text" name="phone_number" class="form-control" value="{{ instance.phone_number|default:'' }}" {% if is_detail_mode %}disabled{% endif %} required />
         </div>
         <div class="col-md-12">
-          <label class="form-label small fw-semibold text-secondary">नारा / विवरण (Slogan)</label>
-          <textarea name="slogan" class="form-control" rows="3" {% if is_detail_mode %}disabled{% endif %}>{{ instance.slogan }}</textarea>
+          <label class="form-label small fw-bold text-secondary mb-1">नारा (Slogan)</label>
+          <textarea name="slogan" class="form-control" rows="3" {% if is_detail_mode %}disabled{% endif %} placeholder="Enter office tagline or core objective details...">{{ instance.slogan|default:'' }}</textarea>
         </div>
       </div>
+    </div>
 
-      <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">🎨 आधिकारिक छाप र लोगो (Brand Identity)</h5>
-      <div class="row g-3 mb-4">
+    <!-- BLOCK 3: Brand Identity Graphics uploads -->
+    <div class="form-section-card p-4 mb-4 shadow-sm">
+      <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+        <span class="text-primary fs-5">🖼️</span>
+        <h5 class="m-0 fw-bold text-dark text-uppercase section-indicator text-secondary">आधिकारिक छाप र लोगो</h5>
+      </div>
+
+      <div class="row g-4">
         <div class="col-md-6">
-          <label class="form-label small fw-semibold text-secondary">निशान छाप (Nishan Chap)</label>
+          <label class="form-label small fw-bold text-secondary mb-2">निशान छाप (Nishan Chap)</label>
           {% if instance.nishan_chap %}
-          <div class="mb-2 border rounded p-2 text-center bg-light" style="max-width: 180px;">
-            <img src="{{ instance.nishan_chap }}" alt="Nishan" class="img-fluid rounded" style="max-height: 100px; object-fit: contain;" />
-          </div>
+            <div class="img-preview-container mb-3 border">
+              <img src="{{ instance.nishan_chap }}" alt="Nishan Chap" class="img-fluid rounded shadow-sm" style="max-height: 110px; object-fit: contain;" />
+            </div>
           {% endif %}
-          {% if not is_detail_mode %}<input type="file" name="nishan_chap" class="form-control" accept="image/*" />{% endif %}
+          {% if not is_detail_mode %}
+            <input type="file" name="nishan_chap" class="form-control" accept="image/*" />
+            <div class="form-text small text-muted mt-1">Accepts PNG, JPG, or JPEG up to 2MB.</div>
+          {% endif %}
         </div>
+
         <div class="col-md-6">
-          <label class="form-label small fw-semibold text-secondary">कार्यालयको लोगो (Office Logo)</label>
+          <label class="form-label small fw-bold text-secondary mb-2">कार्यालयको लोगो (Office Logo)</label>
           {% if instance.office_logo %}
-          <div class="mb-2 border rounded p-2 text-center bg-light" style="max-width: 180px;">
-            <img src="{{ instance.office_logo }}" alt="Logo" class="img-fluid rounded" style="max-height: 100px; object-fit: contain;" />
-          </div>
+            <div class="img-preview-container mb-3 border">
+              <img src="{{ instance.office_logo }}" alt="Office Logo" class="img-fluid rounded shadow-sm" style="max-height: 110px; object-fit: contain;" />
+            </div>
           {% endif %}
-          {% if not is_detail_mode %}<input type="file" name="office_logo" class="form-control" accept="image/*" />{% endif %}
+          {% if not is_detail_mode %}
+            <input type="file" name="office_logo" class="form-control" accept="image/*" />
+            <div class="form-text small text-muted mt-1">Accepts PNG, JPG, or JPEG up to 2MB.</div>
+          {% endif %}
         </div>
       </div>
+    </div>
 
-      <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">⚙️ System Configuration Status</h5>
-      <div class="row g-3 mb-4">
-        <div class="col-md-4">
-          <label class="form-label small fw-semibold text-secondary d-block">स्थिति (Status)</label>
-          <div class="form-check form-switch mt-2">
-            {% if not is_detail_mode %}<input type="hidden" name="is_active" value="False" />{% endif %}
-            <input class="form-check-input" type="checkbox" name="is_active" id="isActiveSwitch" value="True" {% if instance.is_active|default_if_none:True %}checked{% endif %} {% if is_detail_mode %}disabled{% endif %} />
-            <label class="form-check-label small fw-semibold text-muted" for="isActiveSwitch">Active in Document Routing Options</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="d-flex justify-content-end gap-2 border-top pt-3">
-        {% if is_detail_mode %}
-        <a href="{% url 'office_list' %}" class="btn btn-secondary px-4 fw-semibold">Close & Go Back</a>
-        {% else %}
-        <a href="{% url 'office_list' %}" class="btn btn-light border px-4">Cancel</a>
+    <!-- Bottom Action Button Row Layout -->
+    <div class="d-flex align-items-center justify-content-end gap-2 border-top pt-3 mt-4 mb-5">
+      {% if is_detail_mode %}
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary px-4">
+          Close
+        </a>
+        {% if user.is_superuser %}
+          <a href="{% url 'office_edit' pk=instance.id %}" class="btn btn-primary px-4 shadow-sm">
+            📝 Edit Details
+          </a>
+        {% endif %}
+      {% else %}
+        <a href="{% url 'office_list' %}" class="btn btn-outline-secondary px-4">
+          Cancel
+        </a>
         {% if not is_edit_mode or user.is_superuser %}
-        <button type="submit" class="btn btn-primary px-4 fw-semibold">{% if is_edit_mode %}Save Changes{% else %}Save Office Setup{% endif %}</button>
+          <button type="submit" class="btn btn-success px-4 shadow-sm">
+            {% if is_edit_mode %}Save Changes{% else %}सुरक्षित गर्नुहोस् (Save Setup){% endif %}
+          </button>
         {% endif %}
-        {% endif %}
-      </div>
-    </form>
-  </div>
+      {% endif %}
+    </div>
+  </form>
 </div>
 {% endblock %}

@@ -31,7 +31,6 @@ def fetch_all_darta_from_api():
 @login_required
 def darta_dashboard(request):
     return render(request, "dashboard.html")
-
 @login_required
 def darta_list_view(request):
     # 1. Fetch live baseline dataset from API endpoint
@@ -44,6 +43,10 @@ def darta_list_view(request):
     search_query = request.GET.get("search", "").strip()
     search_sender = request.GET.get("sender", "").strip()
     search_subject = request.GET.get("subject_filter", "").strip()
+    
+    # Extract Server-Side Date Range Limits
+    start_date = request.GET.get("start_date", "").strip()
+    end_date = request.GET.get("end_date", "").strip()
 
     # 3. Apply programmatic list filtering based on dictionary keys (Case-Insensitive)
     if search_query:
@@ -62,6 +65,19 @@ def darta_list_view(request):
         raw_data = [
             item for item in raw_data 
             if search_subject.lower() in str(item.get("subject", "")).lower()
+        ]
+
+    # Server-Side Date Range Filter Execution (YYYY-MM-DD string comparisons match chronologically)
+    if start_date:
+        raw_data = [
+            item for item in raw_data 
+            if item.get("darta_date") and item.get("darta_date") >= start_date
+        ]
+        
+    if end_date:
+        raw_data = [
+            item for item in raw_data 
+            if item.get("darta_date") and item.get("darta_date") <= end_date
         ]
 
     # 4. Compute Dynamic Pagination Boundaries safely
@@ -97,9 +113,10 @@ def darta_list_view(request):
             "search_query": search_query,
             "search_sender": search_sender,
             "search_subject": search_subject,
+            "start_date": start_date,
+            "end_date": end_date,
         },
     )
-
 # PAGE 2: Structural Single Item Detail Inspector
 @login_required
 @user_passes_test(lambda u: u.is_superuser)

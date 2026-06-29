@@ -53,6 +53,9 @@
               <option value="50" {% if per_page|stringformat:"s" == "50" %}selected{% endif %}>50</option>
               <option value="all" {% if per_page|stringformat:"s" == "all" %}selected{% endif %}>All Items</option>
           </select>
+          <!-- Forward existing query params to preserve states -->
+          {% if start_date %}<input type="hidden" name="start_date" value="{{ start_date }}">{% endif %}
+          {% if end_date %}<input type="hidden" name="end_date" value="{{ end_date }}">{% endif %}
         </form>
       </div>
 
@@ -71,25 +74,38 @@
       </div>
     </div>
 
-    <!-- Row 2: Live Multi-Field Filter Interface Matrix -->
+    <!-- Row 2: Live Multi-Field Filter Interface Matrix with Date Range Submission Form -->
     <div id="liveGridFilterPanel">
-      <div class="row g-2">
-        <div class="col-md-2">
+      <form method="get" action="" class="row g-2 align-items-center">
+        <!-- Preserve pagination item layout count -->
+        <input type="hidden" name="per_page" value="{{ per_page }}">
+        
+        <div class="col-md-1">
           <input type="text" id="liveDartaNum" class="form-control form-control-sm filter-input" placeholder="दर्ता नं.">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <input type="text" id="liveSender" class="form-control form-control-sm filter-input" placeholder="पठाउने कार्यालय/व्यक्ति">
         </div>
         <div class="col-md-3">
           <input type="text" id="liveSubject" class="form-control form-control-sm filter-input" placeholder="विषय">
         </div>
         <div class="col-md-2">
-          <input type="text" id="liveStartDate" class="form-control form-control-sm filter-input ndp-nepali-calendar" placeholder="मिति देखि (From Date)" autocomplete="off">
+          <input type="text" id="liveStartDate" name="start_date" value="{{ start_date }}" class="form-control form-control-sm filter-input ndp-nepali-calendar" placeholder="मिति देखि (From Date)" autocomplete="off">
         </div>
         <div class="col-md-2">
-          <input type="text" id="liveEndDate" class="form-control form-control-sm filter-input ndp-nepali-calendar" placeholder="मिति सम्म (To Date)" autocomplete="off">
+          <div class="d-flex gap-1">
+            <input type="text" id="liveEndDate" name="end_date" value="{{ end_date }}" class="form-control form-control-sm filter-input ndp-nepali-calendar" placeholder="मिति सम्म (To Date)" autocomplete="off">
+            <button type="submit" class="btn btn-indigo btn-sm text-white px-2.5 d-inline-flex align-items-center" style="background-color: #4f46e5;">
+              <i data-lucide="search" class="size-3.5"></i>
+            </button>
+            {% if start_date or end_date %}
+              <a href="?per_page={{ per_page }}" class="btn btn-light btn-sm border px-2 d-inline-flex align-items-center text-muted" title="Clear Date Filter">
+                <i data-lucide="x" class="size-3.5"></i>
+              </a>
+            {% endif %}
+          </div>
         </div>
-      </div>
+      </form>
     </div>
 
   </div>
@@ -111,7 +127,6 @@
         </thead>
         <tbody class="small">
           {% for item in page_obj %}
-          <!-- Attached explicit metadata fields for rapid runtime string matching -->
           <tr class="darta-row" 
               data-darta="{{ item.darta_number }}" 
               data-date="{{ item.darta_date }}" 
@@ -171,7 +186,6 @@
           </tr>
           {% endfor %}
           
-          <!-- Live local error notification block if filters produce zero items -->
           <tr id="liveEmptyStateRow" class="d-none">
             <td colspan="6" class="text-center py-5 text-muted fw-medium">
               ⚠️ मिल्दो विवरण फेला परेन (No matching records found in this view context).
@@ -182,7 +196,6 @@
     </div>
   </div>
 
-  {# Bottom Navigation Layout controls #}
   {% if page_obj.has_other_pages and per_page != 'all' %}
   <div class="card-footer bg-white border-top py-2 d-flex align-items-center justify-content-between" id="paginationWrapperCard">
     <span class="small text-muted">
@@ -192,7 +205,7 @@
       <ul class="pagination pagination-sm mb-0 gap-1">
         {% if page_obj.has_previous %}
         <li class="page-item">
-          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">
             <span>&lsaquo;</span>
           </a>
         </li>
@@ -203,14 +216,14 @@
             <li class="page-item active"><span class="page-link rounded fw-bold px-3">{{ num }}</span></li>
           {% else %}
             <li class="page-item">
-              <a class="page-link rounded px-3" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
+              <a class="page-link rounded px-3" href="?page={{ num }}&per_page={{ per_page }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ num }}</a>
             </li>
           {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
         <li class="page-item">
-          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">
             <span>&rsaquo;</span>
           </a>
         </li>
@@ -230,63 +243,28 @@
     const inputDarta = document.getElementById('liveDartaNum');
     const inputSender = document.getElementById('liveSender');
     const inputSubject = document.getElementById('liveSubject');
-    const inputStart = document.getElementById('liveStartDate');
-    const inputEnd = document.getElementById('liveEndDate');
     
     const rows = document.querySelectorAll('.darta-row');
     const liveEmptyStateRow = document.getElementById('liveEmptyStateRow');
     const paginationWrapperCard = document.getElementById('paginationWrapperCard');
 
-    // Central Filter Evaluator
-    if (window.NepaliFunctions) {
     function executeLiveDynamicFiltering() {
       const queryDarta = inputDarta.value.toLowerCase().trim();
       const querySender = inputSender.value.toLowerCase().trim();
       const querySubject = inputSubject.value.toLowerCase().trim();
       
-      // Extract string representations of dates directly
-      const startVal = inputStart.value.trim(); 
-      const endVal = inputEnd.value.trim();
-
-      // Convert Nepali string dates (YYYY-MM-DD) to comparable integer indexes
-      const startNum = startVal ? window.NepaliFunctions.parseNepaliDate(startVal) : null;
-      const endNum = endVal ? window.NepaliFunctions.parseNepaliDate(endVal) : null;
-
       let matchCounter = 0;
 
       rows.forEach(row => {
         const rowDarta = row.getAttribute('data-darta').toLowerCase();
         const rowSender = row.getAttribute('data-sender').toLowerCase();
         const rowSubject = row.getAttribute('data-subject').toLowerCase();
-        const rowDateStr = row.getAttribute('data-date').trim();
 
-        // 1. Evaluate Text Inputs
         const matchesDarta = rowDarta.includes(queryDarta);
         const matchesSender = rowSender.includes(querySender);
         const matchesSubject = rowSubject.includes(querySubject);
 
-        // 2. Evaluate Date Range Constraints
-        let matchesDateRange = true;
-        if (rowDateStr) {
-          try {
-            const currentRowParsed = window.NepaliFunctions.parseNepaliDate(rowDateStr);
-            
-            if (startNum && window.NepaliFunctions.compareNepaliDate(currentRowParsed, startNum) === -1) {
-              matchesDateRange = false; // Row date is older than start date
-            }
-            if (endNum && window.NepaliFunctions.compareNepaliDate(currentRowParsed, endNum) === 1) {
-              matchesDateRange = false; // Row date is newer than end date
-            }
-          } catch(e) {
-            // Fallback for unexpected date formats
-            console.error("Date calculation mismatch for sequence entry:", e);
-          }
-        } else if (startVal || endVal) {
-          matchesDateRange = false;
-        }
-
-        // Apply visual updates based on final evaluation
-        if (matchesDarta && matchesSender && matchesSubject && matchesDateRange) {
+        if (matchesDarta && matchesSender && matchesSubject) {
           row.classList.remove('filtered-out');
           matchCounter++;
         } else {
@@ -294,15 +272,13 @@
         }
       });
 
-      // Handle Empty States Dynamic Layout Visibility
       if (matchCounter === 0 && rows.length > 0) {
         liveEmptyStateRow.classList.remove('d-none');
       } else {
         liveEmptyStateRow.classList.add('d-none');
       }
 
-      // Hide baseline pagination indicators while filters are active to avoid indexing confusion
-      const statusCheck = queryDarta || querySender || querySubject || startVal || endVal;
+      const statusCheck = queryDarta || querySender || querySubject;
       if (paginationWrapperCard) {
         if (statusCheck) {
           paginationWrapperCard.classList.add('d-none');
@@ -312,28 +288,20 @@
       }
     }
 
-    // Initialize Nepali Calendar Elements via the v5 Framework Engine
-    inputStart.nepaliDatePicker({
+    // Initialize inputs using v5 Framework engine without immediate automatic filtering
+    document.getElementById('liveStartDate').nepaliDatePicker({
       ndpYear: true,
-      ndpMonth: true,
-      onChange: executeLiveDynamicFiltering
+      ndpMonth: true
     });
 
-    inputEnd.nepaliDatePicker({
+    document.getElementById('liveEndDate').nepaliDatePicker({
       ndpYear: true,
-      ndpMonth: true,
-      onChange: executeLiveDynamicFiltering
+      ndpMonth: true
     });
 
-    // Attach immediate keystroke event observers for textual entry fields
     inputDarta.addEventListener('input', executeLiveDynamicFiltering);
     inputSender.addEventListener('input', executeLiveDynamicFiltering);
     inputSubject.addEventListener('input', executeLiveDynamicFiltering);
-    
-    // Safety handle if inputs are manually wiped/edited using keyboard deletion paths
-    inputStart.addEventListener('input', executeLiveDynamicFiltering);
-    inputEnd.addEventListener('input', executeLiveDynamicFiltering);
-    }
   });
 </script>
 {% endblock %}

@@ -22,6 +22,7 @@ def normalize_excel_date_special_Case(value):
     if hasattr(value, "strftime"):
         return value.strftime("%Y/%m/%d")
     return str(value).split(" ")[0]
+
 class DartaViewSet(viewsets.ModelViewSet):
     queryset = Darta.objects.all().order_by("darta_number")
     serializer_class = DartaSerializer

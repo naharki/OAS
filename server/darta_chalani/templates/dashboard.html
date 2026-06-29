@@ -42,6 +42,12 @@
 
       #sidebar-wrapper {
         min-width: var(--sidebar-width);
+       /* Fixed Sticky Configurations */
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
 
         max-width: var(--sidebar-width);
 
@@ -210,7 +216,7 @@
             id="officesetupSubmenu"
             data-bs-parent="#sidebarAccordion"
           >
-            <a href="/darta-chalani/" class="submenu-item">📑 कार्यालय विवरण</a>
+            <a href="{% url 'office_list' %}" class="submenu-item">📑 कार्यालय विवरण</a>
             <a href="/darta-chalani/darta/add/" class="submenu-item">शाखाहरु</a>
             <a href="/darta-chalani/darta/add/" class="submenu-item">पद</a>
             <a href="/darta-chalani/darta/add/" class="submenu-item">तह</a>
@@ -311,7 +317,7 @@
               <span
                 class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded fw-bold fs-6"
               >
-                🏛️ Bagmati Rural Municipality Office
+                🏛️ {{ global_office.name|default:"OAS Portal" }}
               </span>
             </div>
           </div>

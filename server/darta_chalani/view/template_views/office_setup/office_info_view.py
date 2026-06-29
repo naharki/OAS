@@ -1,68 +1,90 @@
 import requests
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.paginator import Paginator
 from django.shortcuts import redirect, render
 
-API_BASE_URL = "http://127.0.0.1:8000/api/v1/darta-chalani/office-profile/"
+API_BASE_URL = "http://127.0.0.1:8000/api/v1/darta-chalani/office/"
 REQUEST_TIMEOUT = 5
 
-def dashboard_index_view(request):
-    """
-    Renders the unified main launchpad ecosystem index. 
-    Session permissions conditionally hide or show sensitive functional modules.
-    """
-    raw_data = fetch_all_offices_from_api()
-    office_count = len(raw_data) if raw_data else 0
-    return render(request, "office_setup/index.html", {"office_count": office_count})
 
-def fetch_all_offices_from_api():
+def fetch_all_offices_from_api(request=None):
+    """
+    Fetches offices from API. Differentiates between an empty database
+    and an absolute network or API failure using None vs [].
+    """
     try:
         response = requests.get(API_BASE_URL, timeout=REQUEST_TIMEOUT)
         if response.status_code == 200:
-            res_json = response.json()
-            if isinstance(res_json, dict) and "data" in res_json:
-                return res_json["data"]
-            return res_json
-    except requests.exceptions.RequestException:
-        pass
-    return []
+            result = response.json()
+            if result.get("success"):
+                return result.get("data", [])
+            return result.get("data", [])  # Return raw array fallback
+    except requests.exceptions.RequestException as e:
+        if request:
+            messages.error(request, f"सिस्टम API सँग सम्पर्क हुन सकेन (API Connection Error): {str(e)}")
+    return None  # None indicates system level failure, not empty array
 
+
+# @login_required
+# def office_view(request):
+#     """
+#     If office exists -> Redirect to Edit page
+#     If office doesn't exist -> Redirect to Create page
+#     If API is broken -> Display failure layout gracefully
+#     """
+#     offices = fetch_all_offices_from_api(request)
+
+#     if offices is None:
+#         # Prevent forwarding to entry form if service layer is broken
+#         return render(request, "office_setup/office_info/office_info_form.html", {"api_error": True})
+
+#     if len(offices) > 0:
+#         return redirect("office_edit", pk=offices[0]["id"])
+
+#     return redirect("add_office")
 @login_required
-def office_list_view(request):
-    raw_data = fetch_all_offices_from_api()
-    per_page = request.GET.get("per_page", 10)
-    paginator = Paginator(raw_data, per_page)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+def office_view(request):
+    """
+    Acts as the entry router when the user clicks 'कार्यालय विवरण' in the sidebar.
+    Redirects to the Detail view if an office exists.
+    """
+    offices = fetch_all_offices_from_api(request)
 
-    return render(
-        request,
-        "office_setup/office_info/office_list.html",
-        {"page_obj": page_obj, "per_page": int(per_page)},
-    )
+    if offices is None:
+        return render(request, "office_setup/office_info/office_info_form.html", {"api_error": True})
+
+    if len(offices) > 0:
+        # REDIRECT TO DETAIL VIEW INSTEAD OF EDIT
+        first_office_id = offices[0]["id"]
+        return redirect("office_detail", pk=first_office_id)
+
+    # If no office configuration exists at all, send them to create one
+    return redirect("add_office")
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def office_detail_view(request, pk):
-    endpoint_url = f"{API_BASE_URL}{pk}/"
+    endpoint = f"{API_BASE_URL}{pk}/"
     try:
-        response = requests.get(endpoint_url, timeout=REQUEST_TIMEOUT)
+        response = requests.get(endpoint, timeout=REQUEST_TIMEOUT)
         if response.status_code == 200:
-            res_json = response.json()
-            instance_data = res_json.get("data", res_json) if isinstance(res_json, dict) else res_json
-        else:
-            messages.error(request, "विवरण फेला परेन।")
-            return redirect("office_list")
-    except requests.exceptions.RequestException as e:
-        messages.error(request, f"API Connectivity Error: {e}")
-        return redirect("office_list")
+            result = response.json()
+            instance = result.get("data", result)
 
-    return render(
-        request,
-        "office_setup/office_info/office_form.html",
-        {"instance": instance_data, "is_edit_mode": False, "is_detail_mode": True},
-    )
+            return render(
+                request,
+                "office_setup/office_info/office_info_form.html",  # Reusing clean structural layout
+                {
+                    "instance": instance,
+                    "is_detail_mode": True,
+                    "is_edit_mode": False,
+                },
+            )
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"विवरण प्राप्त गर्न असफल: {str(e)}")
+
+    return redirect("office_list")
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -77,33 +99,46 @@ def office_create_view(request):
             "phone_number": request.POST.get("phone_number"),
             "website": request.POST.get("website"),
             "slogan": request.POST.get("slogan"),
-            "is_active": request.POST.get("is_active") == "True",
+            "is_active": "is_active" in request.POST,  # Bulletproof checkbox assignment
         }
+
         files = {}
-        if "nishan_chap" in request.FILES:
-            files["nishan_chap"] = request.FILES["nishan_chap"]
-        if "office_logo" in request.FILES:
+        if request.FILES.get("office_logo"):
             files["office_logo"] = request.FILES["office_logo"]
+        if request.FILES.get("nishan_chap"):
+            files["nishan_chap"] = request.FILES["nishan_chap"]
 
         try:
-            response = requests.post(API_BASE_URL, data=payload, files=files, timeout=REQUEST_TIMEOUT)
+            response = requests.post(
+                API_BASE_URL,
+                data=payload,
+                files=files,
+                timeout=REQUEST_TIMEOUT,
+            )
+
             if response.status_code in [200, 201]:
                 messages.success(request, "कार्यालय सफलतापूर्वक थपियो।")
                 return redirect("office_list")
-            messages.error(request, f"त्रुटी (API Error): {response.text}")
+
+            messages.error(request, f"API Error ({response.status_code}): {response.text}")
+
         except requests.exceptions.RequestException as e:
-            messages.error(request, f"Network Failure: {e}")
+            messages.error(request, f"अनुरोध त्रुटि: {str(e)}")
 
     return render(
         request,
-        "office_setup/office_info/office_form.html",
-        {"is_edit_mode": False, "is_detail_mode": False},
+        "office_setup/office_info/office_info_form.html",
+        {
+            "is_edit_mode": False,
+            "is_detail_mode": False,
+        },
     )
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def office_edit_view(request, pk):
-    endpoint_url = f"{API_BASE_URL}{pk}/"
+    endpoint = f"{API_BASE_URL}{pk}/"
 
     if request.method == "POST":
         payload = {
@@ -115,37 +150,48 @@ def office_edit_view(request, pk):
             "phone_number": request.POST.get("phone_number"),
             "website": request.POST.get("website"),
             "slogan": request.POST.get("slogan"),
-            "is_active": request.POST.get("is_active") == "True",
+            "is_active": "is_active" in request.POST,
         }
+
         files = {}
-        if "nishan_chap" in request.FILES:
-            files["nishan_chap"] = request.FILES["nishan_chap"]
-        if "office_logo" in request.FILES:
+        if request.FILES.get("office_logo"):
             files["office_logo"] = request.FILES["office_logo"]
+        if request.FILES.get("nishan_chap"):
+            files["nishan_chap"] = request.FILES["nishan_chap"]
 
         try:
-            response = requests.patch(endpoint_url, data=payload, files=files, timeout=REQUEST_TIMEOUT)
+            response = requests.patch(
+                endpoint,
+                data=payload,
+                files=files,
+                timeout=REQUEST_TIMEOUT,
+            )
+
             if response.status_code in [200, 204]:
-                messages.success(request, "कार्यालय विवरण सफलतापूर्वक सुरक्षित गरियो।")
+                messages.success(request, "कार्यालय विवरण अद्यावधिक गरियो।")
                 return redirect("office_list")
-            messages.error(request, f"परिमार्जन असफल: {response.text}")
+
+            messages.error(request, f"अपडेट असफल भयो: {response.text}")
+
         except requests.exceptions.RequestException as e:
-            messages.error(request, f"Network Connection Error: {e}")
+            messages.error(request, f"सञ्जाल त्रुटि: {str(e)}")
 
     try:
-        response = requests.get(endpoint_url, timeout=REQUEST_TIMEOUT)
+        response = requests.get(endpoint, timeout=REQUEST_TIMEOUT)
         if response.status_code == 200:
-            res_json = response.json()
-            instance_data = res_json.get("data", res_json) if isinstance(res_json, dict) else res_json
-        else:
-            messages.error(request, "अभिलेख फेला परेन।")
-            return redirect("office_list")
-    except requests.exceptions.RequestException as e:
-        messages.error(request, f"API Connection failure: {e}")
-        return redirect("office_list")
+            result = response.json()
+            instance = result.get("data", result)
 
-    return render(
-        request,
-        "office_setup/office_info/office_form.html",
-        {"instance": instance_data, "is_edit_mode": True, "is_detail_mode": False},
-    )
+            return render(
+                request,
+                "office_setup/office_info/office_info_form.html",
+                {
+                    "instance": instance,
+                    "is_edit_mode": True,
+                    "is_detail_mode": False,
+                },
+            )
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"डाटा लोड गर्न असफल: {str(e)}")
+
+    return redirect("office_list")

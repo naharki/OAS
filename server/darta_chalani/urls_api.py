@@ -10,13 +10,14 @@ from .view.darta_chalani.chalani import (
     ChalaniViewSet,
     NextChalaniNumberAPIView,
 )
-
+from .view.darta_chalani.office_setup import OfficeViewSet
 router = DefaultRouter()
 
 router.register("designations", DesignationViewSet)
 router.register("darta", DartaViewSet)
 router.register("chalani", ChalaniViewSet)
 
+router.register(r'office', OfficeViewSet, basename='office')
 urlpatterns = [
 
     path("", include(router.urls)),
