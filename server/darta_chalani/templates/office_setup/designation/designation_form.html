@@ -1,0 +1,131 @@
+{% extends "dashboard.html" %}
+{% block title %}
+designation Form
+{% endblock %}
+{% block content %}
+
+<style>
+  .form-card {
+    border: 1px solid #eef0f2;
+    border-radius: 12px;
+  }
+
+  .designation-title {
+    font-size: 13px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #6c757d;
+  }
+
+  .form-control {
+    border-radius: 8px;
+  }
+
+  .form-control:focus {
+    box-shadow: none;
+    border-color: #4f46e5;
+  }
+
+  .sticky-header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+</style>
+
+<div class="sticky-header mb-3">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h4 class="fw-bold mb-0">
+        {% if is_detail_mode %}
+          पद विवरण
+        {% elif is_edit_mode %}
+          पद सम्पादन
+        {% else %}
+          नयाँ पद प्रविष्टि
+        {% endif %}
+      </h4>
+      <small class="text-muted">Municipality designation Management System</small>
+    </div>
+
+    <a href="{% url 'designation_list' %}" class="btn btn-light border btn-sm">
+      ← Back
+    </a>
+  </div>
+</div>
+
+{% if messages %}
+  <div class="row mb-3">
+    <div class="col-12">
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+          <strong>सूचना:</strong> {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="row g-3">
+
+    <div class="col-lg-6">
+      <div class="card form-card shadow-sm mb-3">
+        <div class="card-body">
+          <div class="designation-title mb-3">designation Information</div>
+          <div class="mb-3">
+            <label class="form-label">पदको नाम *</label>
+            <input type="text" name="designation_name" class="form-control"
+              value="{{ instance.designation_name|default:'' }}"
+              {% if is_detail_mode %}disabled{% endif %} required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">अंग्रेजी नाम</label>
+            <input type="text" 
+                   name="designation_eng_name" 
+                   class="form-control"
+                   value="{{ instance.designation_eng_name|default:'' }}"
+                   placeholder=""
+                   autocomplete="off"
+                   {% if is_detail_mode %}disabled{% endif %}>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card form-card shadow-sm mb-3">
+        <div class="card-body">
+          <div class="designation-title mb-3">Rank</div>
+          <div class="mb-3">
+            <label class="form-label">Rank *</label>
+            <input type="number" name="designation_rank_number" class="form-control"
+              value="{{ instance.designation_rank_number|default:'' }}"
+              {% if is_detail_mode %}disabled{% endif %} required>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <a href="{% url 'designation_list' %}" class="btn btn-light border">
+      Close
+    </a>
+
+    {% if not is_detail_mode %}
+    <button type="submit" class="btn btn-primary px-4">
+      {% if is_edit_mode %}Update{% else %}Save Record{% endif %}
+    </button>
+    {% endif %}
+  </div>
+
+</form>
+{% endblock %}

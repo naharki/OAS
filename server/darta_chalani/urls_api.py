@@ -1,7 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
-from .view.designation import DesignationViewSet
+from .view.darta_chalani.designation import DesignationViewSet
+from .view.darta_chalani.section_viewset import SectionViewSet
+from .view.darta_chalani.level import LevelViewSet
 from .view.darta_chalani.darta import (
     DartaViewSet,
     NextDartaNumberAPIView,
@@ -13,11 +14,12 @@ from .view.darta_chalani.chalani import (
 from .view.darta_chalani.office_setup import OfficeViewSet
 router = DefaultRouter()
 
-router.register("designations", DesignationViewSet)
+router.register("designation", DesignationViewSet)
 router.register("darta", DartaViewSet)
 router.register("chalani", ChalaniViewSet)
-
+router.register("section", SectionViewSet)
 router.register(r'office', OfficeViewSet, basename='office')
+router.register(r'level', LevelViewSet, basename='level')
 urlpatterns = [
 
     path("", include(router.urls)),

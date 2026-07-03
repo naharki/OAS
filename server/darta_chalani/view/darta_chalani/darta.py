@@ -43,7 +43,6 @@ def excel_upload(self, request):
                {"error" : "No file uploaded"}, 
                status= status.HTTP_400_BAD_REQUEST
            )
-       
        try:
            df = pd.read_excel(file, engine="openpyxl")
        except Exception as e:

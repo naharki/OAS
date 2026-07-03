@@ -1,0 +1,254 @@
+{% extends "dashboard.html" %} 
+{% block title %}Section Records Register{% endblock %} 
+
+{% block content %}
+
+<style>
+  .table-responsive {
+    overflow: visible !important;
+  }
+  .hover-scale:hover {
+    transform: scale(1.1);
+  }
+  .transition-all {
+    transition: all 0.2s ease-in-out;
+  }
+  .filter-input {
+    border-radius: 6px;
+  }
+  .filter-input:focus {
+    box-shadow: none;
+    border-color: #4f46e5;
+  }
+  /* Style class to dynamically hide mismatched content */
+  .filtered-out {
+    display: none !important;
+  }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div>
+    <h5 class="fw-bold text-dark m-0">शाखा अभिलेख सूची</h5>
+  </div>
+</div>
+
+<!-- ACTIONS AND COMPREHENSIVE LIVE FILTERS PANEL -->
+<div class="card border-0 shadow-sm mb-2">
+  <div class="card-body bg-white rounded">
+
+    <!-- Row 1: Global Setup controls -->
+    <div class="row g-3 align-items-center justify-content-between mb-3 border-bottom pb-3">
+      <div class="col-md-3">
+        <form method="get" id="perPageForm" class="d-flex align-items-center gap-2">
+          <label class="small text-muted text-nowrap">Show entries:</label>
+          <select
+            name="per_page"
+            class="form-select form-select-sm"
+            onchange="document.getElementById('perPageForm').submit()"
+          >
+              <option value="10" {% if per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
+              <option value="25" {% if per_page|stringformat:"s" == "25" %}selected{% endif %}>25</option>
+              <option value="50" {% if per_page|stringformat:"s" == "50" %}selected{% endif %}>50</option>
+              <option value="all" {% if per_page|stringformat:"s" == "all" %}selected{% endif %}>All Items</option>
+          </select>
+        </form>
+      </div>
+
+      <div class="col-md-4 text-md-end">
+        <div class="d-inline-flex align-items-center justify-content-md-end flex-wrap gap-2">
+          <a href="{% url 'add_section' %}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 shadow-sm fw-semibold px-3 py-1.5">
+            <i data-lucide="plus-circle" class="size-3"></i><span>नयाँ थप्नुहोस्</span>
+          </a>
+         
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Live Multi-Field Filter Interface Matrix -->
+    <div id="liveGridFilterPanel">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-3">
+          <input type="text" id="liveSectionName" class="form-control form-control-sm filter-input" placeholder="शाखाको नाम">
+        </div>
+        <div class="col-md-3">
+          <input type="text" id="liveSectionEngName" class="form-control form-control-sm filter-input" placeholder="अंग्रेजी नाम">
+        </div>
+        <div class="col-md-3">
+          <input type="text" id="liveSectionRank" class="form-control form-control-sm filter-input" placeholder="Rank">
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 text-secondary" id="dartaMainTable">
+        <thead class="table-light text-dark fw-semibold small">
+          <tr class="text-center">
+            <th class="ps-4">क्र.स</th>
+            <th>शाखाको नाम</th>
+            <th>अंग्रेजी नाम</th>
+            <th>Rank</th>
+            <th class="text-center pe-4">कार्य</th>
+          </tr>
+        </thead>
+        <tbody class="small text-center">
+          {% for item in page_obj %}
+          <tr class="darta-row"
+              data-section_name="{{ item.section_name }}"
+              data-section_eng_name="{{ item.section_eng_name }}"
+              data-section_rank_number="{{ item.section_rank_number }}">
+            <td class="text-center">{{ forloop.counter }}</td>
+            <td class="ps-4 fw-bold text-dark">{{ item.section_name }}</td>
+            <td>
+              <span class="badge bg-light text-secondary border">{{ item.section_eng_name }}</span>
+            </td>
+            <td>
+              <div class="text-dark">{{ item.section_rank_number }}</div>
+            </td>
+            <td class="text-center pe-4 position-relative">
+              <div class="dropdown position-static">
+                <button
+                  class="btn btn-light btn-sm rounded-circle border shadow-sm p-2 hover-scale transition-all"
+                  type="button"
+                  id="dropdownAction{{ item.id }}"
+                  data-bs-toggle="dropdown"
+                  data-bs-boundary="viewport"
+                  aria-expanded="false"
+                >
+                  <i data-lucide="more-horizontal" class="size-4 text-secondary"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 mt-1 rounded-3 bg-white" style="min-width: 160px; z-index: 1060">
+                  <li>
+                    <a href="{% url 'section_detail' item.id %}" class="dropdown-item d-flex align-items-center gap-2 small text-dark py-2 rounded-2 hover-bg-light">
+                      <i data-lucide="eye" class="size-4 text-muted"></i><span>Details</span>
+                    </a>
+                  </li>
+                  {% if user.is_superuser %}
+                  <li><hr class="dropdown-divider my-1 opacity-25" /></li>
+                  <li>
+                    <a href="{% url 'edit_section' item.id %}" class="dropdown-item d-flex align-items-center gap-2 small text-primary py-2 rounded-2 fw-semibold hover-bg-primary-subtle">
+                      <i data-lucide="edit-2" class="size-4 text-primary"></i><span>Edit</span>
+                    </a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-5 text-muted">
+              ⚠️ No section records match your current criteria.
+            </td>
+          </tr>
+          {% endfor %}
+
+          <tr id="liveEmptyStateRow" class="d-none">
+            <td colspan="5" class="text-center py-5 text-muted fw-medium">
+              ⚠️ मिल्दो विवरण फेला परेन (No matching records found in this view context).
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if page_obj.has_other_pages and per_page != 'all' %}
+  <div class="card-footer bg-white border-top py-2 d-flex align-items-center justify-content-between" id="paginationWrapperCard">
+    <span class="small text-muted">
+      Showing Page <strong>{{ page_obj.number }}</strong> of {{ page_obj.paginator.num_pages }}
+    </span>
+    <nav aria-label="Registry table navigation">
+      <ul class="pagination pagination-sm mb-0 gap-1">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">
+            <span>&lsaquo;</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% for num in custom_page_range %}
+          {% if num == page_obj.number %}
+            <li class="page-item active"><span class="page-link rounded fw-bold px-3">{{ num }}</span></li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link rounded px-3" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">
+            <span>&rsaquo;</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+<!-- LIVE MATRIX REACTION ENGINE SCRIPT -->
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function() {
+    const inputSectionName = document.getElementById('liveSectionName');
+    const inputSectionEngName = document.getElementById('liveSectionEngName');
+    const inputSectionRank = document.getElementById('liveSectionRank');
+
+    const rows = document.querySelectorAll('.darta-row');
+    const liveEmptyStateRow = document.getElementById('liveEmptyStateRow');
+    const paginationWrapperCard = document.getElementById('paginationWrapperCard');
+
+    function executeLiveDynamicFiltering() {
+      const queryName = inputSectionName.value.toLowerCase().trim();
+      const queryEngName = inputSectionEngName.value.toLowerCase().trim();
+      const queryRank = inputSectionRank.value.toLowerCase().trim();
+
+      let matchCounter = 0;
+
+      rows.forEach(row => {
+        const rowName = row.getAttribute('data-section_name').toLowerCase();
+        const rowEngName = row.getAttribute('data-section_eng_name').toLowerCase();
+        const rowRank = row.getAttribute('data-section_rank_number').toLowerCase();
+
+        const matchesName = rowName.includes(queryName);
+        const matchesEngName = rowEngName.includes(queryEngName);
+        const matchesRank = rowRank.includes(queryRank);
+
+        if (matchesName && matchesEngName && matchesRank) {
+          row.classList.remove('filtered-out');
+          matchCounter++;
+        } else {
+          row.classList.add('filtered-out');
+        }
+      });
+
+      if (matchCounter === 0 && rows.length > 0) {
+        liveEmptyStateRow.classList.remove('d-none');
+      } else {
+        liveEmptyStateRow.classList.add('d-none');
+      }
+
+      const statusCheck = queryName || queryEngName || queryRank;
+      if (paginationWrapperCard) {
+        if (statusCheck) {
+          paginationWrapperCard.classList.add('d-none');
+        } else {
+          paginationWrapperCard.classList.remove('d-none');
+        }
+      }
+    }
+
+    inputSectionName.addEventListener('input', executeLiveDynamicFiltering);
+    inputSectionEngName.addEventListener('input', executeLiveDynamicFiltering);
+    inputSectionRank.addEventListener('input', executeLiveDynamicFiltering);
+  });
+</script>
+{% endblock %}
