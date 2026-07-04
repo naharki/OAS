@@ -1,0 +1,275 @@
+{% extends "dashboard.html" %}
+{% block title %}Employee Records Register{% endblock %}
+
+{% block content %}
+
+<style>
+  .table-responsive {
+    overflow: visible !important;
+  }
+  .hover-scale:hover {
+    transform: scale(1.1);
+  }
+  .transition-all {
+    transition: all 0.2s ease-in-out;
+  }
+  .filter-input {
+    border-radius: 6px;
+  }
+  .filter-input:focus {
+    box-shadow: none;
+    border-color: #4f46e5;
+  }
+  .filtered-out {
+    display: none !important;
+  }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div>
+    <h5 class="fw-bold text-dark m-0">कर्मचारी अभिलेख सूची</h5>
+  </div>
+</div>
+
+{% if messages %}
+  <div class="row mb-2">
+    <div class="col-12">
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+          <strong>सूचना:</strong> {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<div class="card border-0 shadow-sm mb-2">
+  <div class="card-body bg-white rounded">
+
+    <div class="row g-3 align-items-center justify-content-between mb-3 border-bottom pb-3">
+      <div class="col-md-3">
+        <form method="get" id="perPageForm" class="d-flex align-items-center gap-2">
+          <label class="small text-muted text-nowrap">Show entries:</label>
+          <select
+            name="per_page"
+            class="form-select form-select-sm"
+            onchange="document.getElementById('perPageForm').submit()"
+          >
+              <option value="10" {% if per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
+              <option value="25" {% if per_page|stringformat:"s" == "25" %}selected{% endif %}>25</option>
+              <option value="50" {% if per_page|stringformat:"s" == "50" %}selected{% endif %}>50</option>
+              <option value="all" {% if per_page|stringformat:"s" == "all" %}selected{% endif %}>All Items</option>
+          </select>
+        </form>
+      </div>
+
+      <div class="col-md-4 text-md-end">
+        <div class="d-inline-flex align-items-center justify-content-md-end flex-wrap gap-2">
+          <a href="{% url 'add_employee' %}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 shadow-sm fw-semibold px-3 py-1.5">
+            <i data-lucide="plus-circle" class="size-3"></i><span>नयाँ थप्नुहोस्</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div id="liveGridFilterPanel">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-3">
+          <input type="text" id="liveEmployeeName" class="form-control form-control-sm filter-input" placeholder="कर्मचारीको नाम">
+        </div>
+        <div class="col-md-3">
+          <input type="text" id="liveEmployeeSection" class="form-control form-control-sm filter-input" placeholder="शाखा">
+        </div>
+        <div class="col-md-3">
+          <input type="text" id="liveEmployeeDesignation" class="form-control form-control-sm filter-input" placeholder="पद">
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 text-secondary" id="dartaMainTable">
+        <thead class="table-light text-dark fw-semibold small">
+          <tr class="text-center">
+            <th class="ps-4">क्र.स</th>
+            <th>नाम</th>
+            <th>फोन नम्बर</th>
+            <th>इमेल</th>
+            <th>शाखा</th>
+            <th>पद</th>
+            <th>तह</th>
+            <th>स्थिति</th>
+            <th class="text-center pe-4">कार्य</th>
+          </tr>
+        </thead>
+        <tbody class="small text-center">
+          {% for item in page_obj %}
+          <tr class="darta-row"
+              data-employee_name="{{ item.first_name|default:'' }} {{ item.last_name|default:'' }}"
+              data-employee_section="{{ item.section.name|default:'' }}"
+              data-employee_designation="{{ item.designation.name|default:'' }}">
+            <td class="text-center">{{ forloop.counter }}</td>
+            <td class="ps-4 fw-bold text-dark">{{ item.first_name }} {{ item.last_name }}</td>
+            <td>{{ item.phone_number|default:'' }}</td>
+            <td>{{ item.email|default:'' }}</td>
+            <td>
+              <span class="badge bg-light text-secondary border">{{ item.section.name|default:'' }}</span>
+            </td>
+            <td>
+              <span class="text-info fw-semibold">{{ item.designation.name|default:'' }}</span>
+            </td>
+            <td>{{ item.level.name|default:'' }}</td>
+            <td>
+              {% if item.is_active %}
+                <span class="badge bg-success-subtle text-success">सक्रिय</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary">निष्क्रिय</span>
+              {% endif %}
+            </td>
+            <td class="text-center pe-4 position-relative">
+              <div class="dropdown position-static">
+                <button
+                  class="btn btn-light btn-sm rounded-circle border shadow-sm p-2 hover-scale transition-all"
+                  type="button"
+                  id="dropdownAction{{ item.id }}"
+                  data-bs-toggle="dropdown"
+                  data-bs-boundary="viewport"
+                  aria-expanded="false"
+                >
+                  <i data-lucide="more-horizontal" class="size-4 text-secondary"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 mt-1 rounded-3 bg-white" style="min-width: 160px; z-index: 1060">
+                  <li>
+                    <a href="{% url 'employee_detail' item.id %}" class="dropdown-item d-flex align-items-center gap-2 small text-dark py-2 rounded-2 hover-bg-light">
+                      <i data-lucide="eye" class="size-4 text-muted"></i><span>Details</span>
+                    </a>
+                  </li>
+                  {% if user.is_superuser %}
+                  <li><hr class="dropdown-divider my-1 opacity-25" /></li>
+                  <li>
+                    <a href="{% url 'edit_employee' item.id %}" class="dropdown-item d-flex align-items-center gap-2 small text-primary py-2 rounded-2 fw-semibold hover-bg-primary-subtle">
+                      <i data-lucide="edit-2" class="size-4 text-primary"></i><span>Edit</span>
+                    </a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" class="text-center py-5 text-muted">
+              ⚠️ No employee records match your current criteria.
+            </td>
+          </tr>
+          {% endfor %}
+
+          <tr id="liveEmptyStateRow" class="d-none">
+            <td colspan="9" class="text-center py-5 text-muted fw-medium">
+              ⚠️ मिल्दो विवरण फेला परेन (No matching records found in this view context).
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if page_obj.has_other_pages and per_page != 'all' %}
+  <div class="card-footer bg-white border-top py-2 d-flex align-items-center justify-content-between" id="paginationWrapperCard">
+    <span class="small text-muted">
+      Showing Page <strong>{{ page_obj.number }}</strong> of {{ page_obj.paginator.num_pages }}
+    </span>
+    <nav aria-label="Registry table navigation">
+      <ul class="pagination pagination-sm mb-0 gap-1">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">
+            <span>&lsaquo;</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% for num in custom_page_range %}
+          {% if num == page_obj.number %}
+            <li class="page-item active"><span class="page-link rounded fw-bold px-3">{{ num }}</span></li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link rounded px-3" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">
+            <span>&rsaquo;</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function() {
+    const inputName = document.getElementById('liveEmployeeName');
+    const inputSection = document.getElementById('liveEmployeeSection');
+    const inputDesignation = document.getElementById('liveEmployeeDesignation');
+
+    const rows = document.querySelectorAll('.darta-row');
+    const liveEmptyStateRow = document.getElementById('liveEmptyStateRow');
+    const paginationWrapperCard = document.getElementById('paginationWrapperCard');
+
+    function executeLiveDynamicFiltering() {
+      const queryName = inputName.value.toLowerCase().trim();
+      const querySection = inputSection.value.toLowerCase().trim();
+      const queryDesignation = inputDesignation.value.toLowerCase().trim();
+
+      let matchCounter = 0;
+
+      rows.forEach(row => {
+        const rowName = (row.getAttribute('data-employee_name') || '').toLowerCase();
+        const rowSection = (row.getAttribute('data-employee_section') || '').toLowerCase();
+        const rowDesignation = (row.getAttribute('data-employee_designation') || '').toLowerCase();
+
+        const matchesName = rowName.includes(queryName);
+        const matchesSection = rowSection.includes(querySection);
+        const matchesDesignation = rowDesignation.includes(queryDesignation);
+
+        if (matchesName && matchesSection && matchesDesignation) {
+          row.classList.remove('filtered-out');
+          matchCounter++;
+        } else {
+          row.classList.add('filtered-out');
+        }
+      });
+
+      if (matchCounter === 0 && rows.length > 0) {
+        liveEmptyStateRow.classList.remove('d-none');
+      } else {
+        liveEmptyStateRow.classList.add('d-none');
+      }
+
+      const statusCheck = queryName || querySection || queryDesignation;
+      if (paginationWrapperCard) {
+        if (statusCheck) {
+          paginationWrapperCard.classList.add('d-none');
+        } else {
+          paginationWrapperCard.classList.remove('d-none');
+        }
+      }
+    }
+
+    inputName.addEventListener('input', executeLiveDynamicFiltering);
+    inputSection.addEventListener('input', executeLiveDynamicFiltering);
+    inputDesignation.addEventListener('input', executeLiveDynamicFiltering);
+  });
+</script>
+{% endblock %}

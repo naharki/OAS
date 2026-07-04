@@ -6,6 +6,7 @@ from .view.template_views.office_setup import office_info_view
 from .view.template_views.office_setup import section_view_template
 from .view.template_views import darta_views
 from .view.template_views.office_setup import level_view_template
+from .view.template_views.office_setup import employee_view_template
 
 urlpatterns = [
     path("", dashboard_view, name="home"),
@@ -40,6 +41,12 @@ urlpatterns = [
     path("level/", level_view_template.level_list_view, name="level_list"),
     path("level/add/", level_view_template.level_create_view, name="add_level"),
     path("level/<int:pk>/", level_view_template.level_detail_view, name="level_detail"),
-    path("level/<int:pk>/edit/", level_view_template.level_edit_view, name="edit_level")
+    path("level/<int:pk>/edit/", level_view_template.level_edit_view, name="edit_level"),
+
+    # employee template view configs
+    path("employee/", employee_view_template.employee_list_view, name="employee_list"),
+    path("employee/add/", employee_view_template.employee_create_view, name="add_employee"),
+    path("employee/<int:pk>/", employee_view_template.employee_detail_view, name="employee_detail"),
+    path("employee/<int:pk>/edit/", employee_view_template.employee_edit_view, name="edit_employee"),
     
 ]

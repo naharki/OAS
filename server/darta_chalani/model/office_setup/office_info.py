@@ -11,8 +11,7 @@ class Office_model(models.Model):
     slogan = models.CharField(max_length=255, blank=True, null=True)
     nishan_chap = models.ImageField(upload_to='images/nishan_chap/', null=True, blank=True)  
     office_logo = models.ImageField(upload_to='images/office_logo/', null=True, blank=True)  
-    created_at = models.DateTimeField(auto_now_add=True)  
-    updated_at = models.DateTimeField(auto_now=True)    
+     
 
     def __str__(self):
         return self.name
