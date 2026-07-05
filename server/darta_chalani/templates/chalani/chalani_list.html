@@ -1,0 +1,268 @@
+{% extends "dashboard.html" %}
+{% block title %}Chalani Document Records Register{% endblock %}
+
+{% block content %}
+<link href="https://nepalidatepicker.sajanmaharjan.com.np/v5/dist/nepali.datepicker.v5.min.css" rel="stylesheet" type="text/css" />
+
+<style>
+  .table-responsive { overflow: visible !important; }
+  .hover-scale:hover { transform: scale(1.1); }
+  .transition-all { transition: all 0.2s ease-in-out; }
+  .filter-input { border-radius: 6px; }
+  .filter-input:focus { box-shadow: none; border-color: #4f46e5; }
+  .filtered-out { display: none !important; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div>
+    <h5 class="fw-bold text-dark m-0">चलानी अभिलेख सूची</h5>
+  </div>
+</div>
+
+{% if messages %}
+  <div class="row mb-2">
+    <div class="col-12">
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+          <strong>सूचना:</strong> {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<div class="card border-0 shadow-sm mb-2">
+  <div class="card-body bg-white rounded">
+
+    <div class="row g-3 align-items-center justify-content-between mb-3 border-bottom pb-3">
+      <div class="col-md-3">
+        <form method="get" id="perPageForm" class="d-flex align-items-center gap-2">
+          <label class="small text-muted text-nowrap">Show entries:</label>
+          <select name="per_page" class="form-select form-select-sm" onchange="document.getElementById('perPageForm').submit()">
+              <option value="10" {% if per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
+              <option value="25" {% if per_page|stringformat:"s" == "25" %}selected{% endif %}>25</option>
+              <option value="50" {% if per_page|stringformat:"s" == "50" %}selected{% endif %}>50</option>
+              <option value="all" {% if per_page|stringformat:"s" == "all" %}selected{% endif %}>All Items</option>
+          </select>
+          {% if start_date %}<input type="hidden" name="start_date" value="{{ start_date }}">{% endif %}
+          {% if end_date %}<input type="hidden" name="end_date" value="{{ end_date }}">{% endif %}
+        </form>
+      </div>
+
+      <div class="col-md-4 text-md-end">
+        <div class="d-inline-flex align-items-center justify-content-md-end flex-wrap gap-2">
+          <a href="{% url 'add_chalani' %}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 shadow-sm fw-semibold px-3 py-1.5">
+            <i data-lucide="plus-circle" class="size-3"></i><span>नयाँ थप्नुहोस्</span>
+          </a>
+          <a href="{% url 'export_chalani_excel' %}" class="btn btn-outline-success btn-sm d-inline-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5">
+            <i data-lucide="sheet" class="size-4"></i><span></span>
+          </a>
+          <a href="{% url 'export_chalani_pdf' %}" target="_blank" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5">
+            <i data-lucide="file-text" class="size-4"></i><span></span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div id="liveGridFilterPanel">
+      <form method="get" action="" class="row g-2 align-items-center">
+        <input type="hidden" name="per_page" value="{{ per_page }}">
+
+        <div class="col-md-1">
+          <input type="text" id="liveChalaniNum" class="form-control form-control-sm filter-input" placeholder="चलानी नं.">
+        </div>
+        <div class="col-md-2">
+          <input type="text" id="liveReceiver" class="form-control form-control-sm filter-input" placeholder="पाउने व्यक्ति/कार्यालय">
+        </div>
+        <div class="col-md-3">
+          <input type="text" id="liveSubject" class="form-control form-control-sm filter-input" placeholder="विषय">
+        </div>
+        <div class="col-md-2">
+          <input type="text" id="liveStartDate" name="start_date" value="{{ start_date }}" class="form-control form-control-sm filter-input ndp-nepali-calendar" placeholder="मिति देखि (From Date)" autocomplete="off">
+        </div>
+        <div class="col-md-2">
+          <div class="d-flex gap-1">
+            <input type="text" id="liveEndDate" name="end_date" value="{{ end_date }}" class="form-control form-control-sm filter-input ndp-nepali-calendar" placeholder="मिति सम्म (To Date)" autocomplete="off">
+            <button type="submit" class="btn btn-indigo btn-sm text-white px-2.5 d-inline-flex align-items-center" style="background-color: #4f46e5;">
+              <i data-lucide="search" class="size-3.5"></i>
+            </button>
+            {% if start_date or end_date %}
+              <a href="?per_page={{ per_page }}" class="btn btn-light btn-sm border px-2 d-inline-flex align-items-center text-muted" title="Clear Date Filter">
+                <i data-lucide="x" class="size-3.5"></i>
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 text-secondary" id="chalaniMainTable">
+        <thead class="table-light text-dark fw-semibold small">
+          <tr>
+            <th class="ps-4">चलानी नं.</th>
+            <th>चलानी मिति</th>
+            <th>पत्र पाउने व्यक्ति/कार्यालय</th>
+            <th>विषय</th>
+            <th>पठाउने शाखा</th>
+            <th class="text-center pe-4">कार्य</th>
+          </tr>
+        </thead>
+        <tbody class="small">
+          {% for item in page_obj %}
+          <tr class="chalani-row"
+              data-chalani="{{ item.chalani_number }}"
+              data-date="{{ item.chalani_date }}"
+              data-receiver="{{ item.letter_receiver }}"
+              data-subject="{{ item.subject }}">
+            <td class="ps-4 fw-bold text-dark">{{ item.chalani_number }}</td>
+            <td>
+              <span class="badge bg-light text-secondary border">{{ item.chalani_date }}</span>
+            </td>
+            <td>
+              <div class="text-dark">{{ item.letter_receiver }}</div>
+            </td>
+            <td>
+              <div class="text-dark fw-medium">{{ item.subject }}</div>
+            </td>
+            <td>
+              <span class="text-info fw-semibold text-uppercase">
+                {% if item.sender_section.section_name %}{{ item.sender_section.section_name }}{% else %}{{ item.sender_section }}{% endif %}
+              </span>
+            </td>
+            <td class="text-center pe-4 position-relative">
+              <div class="dropdown position-static">
+                <button class="btn btn-light btn-sm rounded-circle border shadow-sm p-2 hover-scale transition-all"
+                  type="button" id="dropdownAction{{ item.id }}"
+                  data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
+                  <i data-lucide="more-horizontal" class="size-4 text-secondary"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 mt-1 rounded-3 bg-white" style="min-width: 160px; z-index: 1060">
+                  <li>
+                    <a href="{% url 'chalani_detail' item.id %}" class="dropdown-item d-flex align-items-center gap-2 small text-dark py-2 rounded-2 hover-bg-light">
+                      <i data-lucide="eye" class="size-4 text-muted"></i><span>Details</span>
+                    </a>
+                  </li>
+                  {% if user.is_superuser %}
+                  <li><hr class="dropdown-divider my-1 opacity-25" /></li>
+                  <li>
+                    <a href="{% url 'edit_chalani' item.id %}" class="dropdown-item d-flex align-items-center gap-2 small text-primary py-2 rounded-2 fw-semibold hover-bg-primary-subtle">
+                      <i data-lucide="edit-2" class="size-4 text-primary"></i><span>Edit</span>
+                    </a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              ⚠️ No chalani records match your current criteria.
+            </td>
+          </tr>
+          {% endfor %}
+
+          <tr id="liveEmptyStateRow" class="d-none">
+            <td colspan="6" class="text-center py-5 text-muted fw-medium">
+              ⚠️ मिल्दो विवरण फेला परेन (No matching records found in this view context).
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if page_obj.has_other_pages and per_page != 'all' %}
+  <div class="card-footer bg-white border-top py-2 d-flex align-items-center justify-content-between" id="paginationWrapperCard">
+    <span class="small text-muted">
+      Showing Page <strong>{{ page_obj.number }}</strong> of {{ page_obj.paginator.num_pages }}
+    </span>
+    <nav aria-label="Registry table navigation">
+      <ul class="pagination pagination-sm mb-0 gap-1">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">
+            <span>&lsaquo;</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% for num in custom_page_range %}
+          {% if num == page_obj.number %}
+            <li class="page-item active"><span class="page-link rounded fw-bold px-3">{{ num }}</span></li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link rounded px-3" href="?page={{ num }}&per_page={{ per_page }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link rounded px-2.5 py-1.5" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">
+            <span>&rsaquo;</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+<script src="https://nepalidatepicker.sajanmaharjan.com.np/v5/dist/nepali.datepicker.v5.min.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function() {
+    const inputChalani = document.getElementById('liveChalaniNum');
+    const inputReceiver = document.getElementById('liveReceiver');
+    const inputSubject = document.getElementById('liveSubject');
+
+    const rows = document.querySelectorAll('.chalani-row');
+    const liveEmptyStateRow = document.getElementById('liveEmptyStateRow');
+    const paginationWrapperCard = document.getElementById('paginationWrapperCard');
+
+    function executeLiveDynamicFiltering() {
+      const queryChalani = inputChalani.value.toLowerCase().trim();
+      const queryReceiver = inputReceiver.value.toLowerCase().trim();
+      const querySubject = inputSubject.value.toLowerCase().trim();
+
+      let matchCounter = 0;
+
+      rows.forEach(row => {
+        const rowChalani = (row.getAttribute('data-chalani') || '').toLowerCase();
+        const rowReceiver = (row.getAttribute('data-receiver') || '').toLowerCase();
+        const rowSubject = (row.getAttribute('data-subject') || '').toLowerCase();
+
+        const matches = rowChalani.includes(queryChalani)
+          && rowReceiver.includes(queryReceiver)
+          && rowSubject.includes(querySubject);
+
+        row.classList.toggle('filtered-out', !matches);
+        if (matches) matchCounter++;
+      });
+
+      liveEmptyStateRow.classList.toggle('d-none', !(matchCounter === 0 && rows.length > 0));
+
+      const statusCheck = queryChalani || queryReceiver || querySubject;
+      if (paginationWrapperCard) {
+        paginationWrapperCard.classList.toggle('d-none', !!statusCheck);
+      }
+    }
+
+    document.getElementById('liveStartDate').nepaliDatePicker({ ndpYear: true, ndpMonth: true });
+    document.getElementById('liveEndDate').nepaliDatePicker({ ndpYear: true, ndpMonth: true });
+
+    inputChalani.addEventListener('input', executeLiveDynamicFiltering);
+    inputReceiver.addEventListener('input', executeLiveDynamicFiltering);
+    inputSubject.addEventListener('input', executeLiveDynamicFiltering);
+  });
+</script>
+{% endblock %}

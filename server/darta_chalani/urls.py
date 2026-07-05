@@ -7,6 +7,7 @@ from .view.template_views.office_setup import section_view_template
 from .view.template_views import darta_views
 from .view.template_views.office_setup import level_view_template
 from .view.template_views.office_setup import employee_view_template
+from .view.template_views import chalani_template_view
 
 urlpatterns = [
     path("", dashboard_view, name="home"),
@@ -18,6 +19,15 @@ urlpatterns = [
     path("darta/<int:pk>/edit/", darta_views.darta_edit_view, name="edit_darta"),
     path("darta/export_pdf/", darta_views.export_darta_pdf, name="export_darta_pdf"),
     path("darta/export_excel/", darta_views.export_darta_excel, name="export_darta_excel"),
+
+    # chalani template config
+    path('chalani/', chalani_template_view.chalani_list_view, name="chalani_list"),
+    path("chalani/add/", chalani_template_view.chalani_create_view, name="add_chalani"),
+    path("chalani/<int:pk>/", chalani_template_view.chalani_detail_view, name="chalani_detail"),
+    path("chalani/<int:pk>/edit/", chalani_template_view.chalani_edit_view, name="edit_chalani"),
+    path("chalani/export_pdf/", chalani_template_view.export_chalani_pdf, name="export_chalani_pdf"),
+    path("chalani/export_excel/", chalani_template_view.export_chalani_excel, name="export_chalani_excel"),
+
 
     # Standardized Office Architecture Configs
     path("office/", office_info_view.office_view, name="office_list"),  # Matches templates
